@@ -380,7 +380,8 @@ const reasonEvents: Record<string, string[]> = {
   "outside-press": ["MouseEvent"],
   "escape-key": ["KeyboardEvent"],
   "focus-out": ["FocusEvent", "KeyboardEvent"],
-  "window-blur": ["FocusEvent"],
+  // Chrome's window blur is a plain Event, not the FocusEvent the type names.
+  "window-blur": ["Event"],
   "submenu-switch": ["PointerEvent", "KeyboardEvent"],
   "parent-close": [],
   "trigger-release": ["PointerEvent"],

@@ -24,3 +24,10 @@ test("checks link-press, collapse, timeout and resize against the vocabulary", (
   ])
   warn.mockRestore()
 })
+
+test("admits a window blur that is a plain Event, as Chrome sends it", () => {
+  const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+  checkEvent("window-blur", new Event("blur"), { component: "test" })
+  expect(warn).not.toHaveBeenCalled()
+  warn.mockRestore()
+})
