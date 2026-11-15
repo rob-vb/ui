@@ -49,6 +49,7 @@ import {
   type PopupContainer,
 } from "./popup"
 import {
+  createChildFlag,
   createParts,
   providePrimitive,
   renderStatic,
@@ -125,7 +126,7 @@ function Menu(props: MenuProps) {
   useControllerEntry(() => props.controller, menu)
   const apple = appleSignal(menu)
   // Written by a MenuContent among the children, while the children render.
-  const [hasContent, setHasContent] = createSignal(false, { ownedWrite: true })
+  const [hasContent, setHasContent] = createChildFlag()
   return (
     <MenuContext value={menu}>
       <ContainerContext value={() => props.container}>

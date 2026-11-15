@@ -47,6 +47,23 @@ test("an open select hydrates without mismatches", async ({ page, open }) => {
   expect(await hydrationErrors(page)).toEqual([])
 })
 
+test("an open select with items as data and its own content hydrates the one list the server sent", async ({
+  page,
+  open,
+}) => {
+  await open("select", { open: "", data: "" })
+  await expect(page.getByRole("listbox")).toBeVisible()
+  const lists = await page.evaluate(() => {
+    const template = document.createElement("template")
+    template.innerHTML = (
+      window as unknown as { __serverHtml: string }
+    ).__serverHtml
+    return template.content.querySelectorAll("[role=listbox]").length
+  })
+  expect(lists).toBe(1)
+  expect(await hydrationErrors(page)).toEqual([])
+})
+
 test("the server markup submits the default value before hydration", async ({
   page,
   framework,

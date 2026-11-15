@@ -55,6 +55,7 @@ import {
 import { inSheetHeader, sheetHeader, SheetHeaderContext } from "./sheet-header"
 import {
   createParts,
+  ownChildren,
   providePrimitive,
   useAround,
   usePart,
@@ -141,23 +142,26 @@ function Combobox<T = string, Multiple extends boolean | undefined = false>(
     }
   )
   const [header, setHeader] = createSignal<HTMLElement | null>(null)
-  // Written by a ComboboxContent among the children, while the children render.
-  const [hasContent, setHasContent] = createSignal(false, { ownedWrite: true })
   return (
     <ComboboxContext value={combobox}>
       <ContainerContext value={() => props.container}>
         <SheetHeaderContext value={[header, (el) => setHeader(el)]}>
-          {providePrimitive(combobox, () => (
-            <>
-              <OwnContentContext value={setHasContent}>
+          {providePrimitive(combobox, () => {
+            const [own, hasContent] = ownChildren((register) => (
+              <OwnContentContext value={register}>
                 {props.children}
               </OwnContentContext>
-              <Show when={props.items && !hasContent()}>
-                <ComboboxContent />
-              </Show>
-              {formInputs(combobox, () => props.multiple)}
-            </>
-          ))}
+            ))
+            return (
+              <>
+                {own()}
+                <Show when={props.items && !hasContent()}>
+                  <ComboboxContent />
+                </Show>
+                {formInputs(combobox, () => props.multiple)}
+              </>
+            )
+          })}
         </SheetHeaderContext>
       </ContainerContext>
     </ComboboxContext>

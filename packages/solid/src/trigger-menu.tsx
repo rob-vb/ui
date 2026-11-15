@@ -13,7 +13,6 @@ import {
 import type { JSX } from "@solidjs/web"
 import {
   createContext,
-  createSignal,
   merge,
   omit,
   onCleanup,
@@ -30,6 +29,7 @@ import {
 import { ListItems, type ListParts } from "./list-items"
 import {
   createParts,
+  ownChildren,
   providePrimitive,
   usePart,
   usePrimitive,
@@ -88,21 +88,24 @@ function TriggerMenu<T = string>(props: TriggerMenuProps<T>) {
     editor: props.editor ?? inherited(),
   }))
   useControllerEntry(() => props.controller, menu)
-  // Written by a TriggerMenuContent among the children, while the children render.
-  const [hasContent, setHasContent] = createSignal(false, { ownedWrite: true })
   return (
     <TriggerMenuContext value={menu}>
       <ContainerContext value={() => props.container}>
-        {providePrimitive(menu, () => (
-          <>
-            <OwnContentContext value={setHasContent}>
+        {providePrimitive(menu, () => {
+          const [own, hasContent] = ownChildren((register) => (
+            <OwnContentContext value={register}>
               {props.children}
             </OwnContentContext>
-            <Show when={!hasContent()}>
-              <TriggerMenuContent />
-            </Show>
-          </>
-        ))}
+          ))
+          return (
+            <>
+              {own()}
+              <Show when={!hasContent()}>
+                <TriggerMenuContent />
+              </Show>
+            </>
+          )
+        })}
       </ContainerContext>
     </TriggerMenuContext>
   )

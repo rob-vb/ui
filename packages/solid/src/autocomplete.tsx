@@ -32,6 +32,7 @@ import {
 import { inSheetHeader, sheetHeader, SheetHeaderContext } from "./sheet-header"
 import {
   createParts,
+  ownChildren,
   providePrimitive,
   useAround,
   usePart,
@@ -95,22 +96,25 @@ function Autocomplete(props: AutocompleteProps) {
   }))
   useControllerEntry(() => props.controller, autocomplete)
   const [header, setHeader] = createSignal<HTMLElement | null>(null)
-  // Written by an AutocompleteContent among the children, while the children render.
-  const [hasContent, setHasContent] = createSignal(false, { ownedWrite: true })
   return (
     <AutocompleteContext value={autocomplete}>
       <ContainerContext value={() => props.container}>
         <SheetHeaderContext value={[header, (el) => setHeader(el)]}>
-          {providePrimitive(autocomplete, () => (
-            <>
-              <OwnContentContext value={setHasContent}>
+          {providePrimitive(autocomplete, () => {
+            const [own, hasContent] = ownChildren((register) => (
+              <OwnContentContext value={register}>
                 {props.children}
               </OwnContentContext>
-              <Show when={props.items && !hasContent()}>
-                <AutocompleteContent />
-              </Show>
-            </>
-          ))}
+            ))
+            return (
+              <>
+                {own()}
+                <Show when={props.items && !hasContent()}>
+                  <AutocompleteContent />
+                </Show>
+              </>
+            )
+          })}
         </SheetHeaderContext>
       </ContainerContext>
     </AutocompleteContext>

@@ -25,7 +25,6 @@ import type { JSX } from "@solidjs/web"
 import {
   createContext,
   createEffect,
-  createSignal,
   createUniqueId,
   merge,
   omit,
@@ -48,6 +47,7 @@ import {
 } from "./popup"
 import {
   createParts,
+  ownChildren,
   providePrimitive,
   renderStatic,
   useAround,
@@ -138,22 +138,25 @@ function Select<T = string, Multiple extends boolean | undefined = false>(
       }
     }
   )
-  // Written by a SelectContent among the children, while the children render.
-  const [hasContent, setHasContent] = createSignal(false, { ownedWrite: true })
   return (
     <SelectContext value={select}>
       <ContainerContext value={() => props.container}>
-        {providePrimitive(select, () => (
-          <>
-            <OwnContentContext value={setHasContent}>
+        {providePrimitive(select, () => {
+          const [own, hasContent] = ownChildren((register) => (
+            <OwnContentContext value={register}>
               {props.children}
             </OwnContentContext>
-            <Show when={props.items && !hasContent()}>
-              <SelectContent />
-            </Show>
-            {formInputs(select, () => props.multiple)}
-          </>
-        ))}
+          ))
+          return (
+            <>
+              {own()}
+              <Show when={props.items && !hasContent()}>
+                <SelectContent />
+              </Show>
+              {formInputs(select, () => props.multiple)}
+            </>
+          )
+        })}
       </ContainerContext>
     </SelectContext>
   )

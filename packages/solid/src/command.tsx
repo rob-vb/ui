@@ -14,7 +14,6 @@ import {
 import type { JSX } from "@solidjs/web"
 import {
   createContext,
-  createSignal,
   createUniqueId,
   For,
   merge,
@@ -27,6 +26,7 @@ import {
 import { useControllerEntry } from "./controller-target"
 import { markSegments, textToMark } from "./list-text"
 import {
+  createChildFlag,
   createParts,
   useAround,
   usePart,
@@ -129,7 +129,7 @@ function Command(props: CommandProps) {
   }))
   useControllerEntry(() => props.controller, command)
   // Written by a CommandList among the children, while the children render.
-  const [hasList, setHasList] = createSignal(false, { ownedWrite: true })
+  const [hasList, setHasList] = createChildFlag()
   const rest = merge(omit(props, ...optionKeys), {
     // The children are read once, inside the list registry, so a CommandList
     // among them finds it. A function of state renders on its own; otherwise

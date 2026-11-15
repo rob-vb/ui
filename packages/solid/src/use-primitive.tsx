@@ -32,6 +32,7 @@ import {
 import { dynamic, isServer, type JSX, type ValidComponent } from "@solidjs/web"
 import {
   $PROXY,
+  children,
   createContext,
   createEffect,
   createMemo,
@@ -1258,10 +1259,45 @@ function createParts<
   return parts as unknown as Parts<P, Tags>
 }
 
+// Whether a part among the children said it's there, like a data select's
+// own content. Plain, so the render that wrote it reads it, on the server too,
+// where writing a signal is deprecated. The signal carries later changes.
+function createChildFlag() {
+  let present = false
+  const [version, setVersion] = createSignal(0, { ownedWrite: true })
+  return [
+    () => {
+      if (!isServer) {
+        version()
+      }
+      return present
+    },
+    (next: boolean) => {
+      present = next
+      if (!isServer) {
+        setVersion((count) => count + 1)
+      }
+    },
+  ] as const
+}
+
+// The children of a root that renders a part itself unless one is among them,
+// and whether one is. They resolve before the answer, since a `Show` after
+// them reads its condition as it's made, before the server renders them.
+function ownChildren(
+  render: (register: (present: boolean) => void) => JSX.Element
+) {
+  const [present, register] = createChildFlag()
+  const resolved = children(() => render(register))
+  return [resolved, () => (resolved(), present())] as const
+}
+
 export {
   callHandler,
+  createChildFlag,
   createParts,
   type GenericPartComponent,
+  ownChildren,
   type PartComponent,
   type PartProps,
   type Parts,
