@@ -107,3 +107,39 @@ test("a dialog removed along with what opened it leaves focus alone on the new p
   await settle()
   expect(document.activeElement).toBe(document.body)
 })
+
+test("a dialog removed along with the menu that opened it leaves focus alone on the new page", async () => {
+  const actions = mount(
+    menu,
+    {},
+    `<trigger>Actions</trigger><content><item value="edit">Edit</item></content>`
+  )
+  const app = document.body.appendChild(document.createElement("div"))
+  let page: Element = actions.part("trigger")!
+  while (page.parentElement !== document.body) {
+    page = page.parentElement!
+  }
+  app.append(page)
+  await actions.click(actions.part("trigger")!)
+  await settle()
+  const item = actions.part("item")!
+  let view!: ReturnType<typeof mount<typeof dialog>>
+  item.addEventListener(
+    "click",
+    () => {
+      view = mount(
+        dialog,
+        { defaultOpen: true },
+        `<content><title>Edit</title><close>Close</close></content>`
+      )
+    },
+    { capture: true }
+  )
+  await actions.click(item)
+  await settle()
+  page.replaceWith(document.createElement("input"))
+  view.unmount()
+  actions.unmount()
+  await settle()
+  expect(document.activeElement).toBe(document.body)
+})

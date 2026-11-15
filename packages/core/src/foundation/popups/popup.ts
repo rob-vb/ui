@@ -581,7 +581,8 @@ function createPopupLayer<
   // returns to its own target, else the focus that the last close left.
   // Kept after a close, so a popup this one opened can still follow it.
   let upstream: (
-    take?: (target: HTMLElement) => boolean
+    take?: (target: HTMLElement) => boolean,
+    near?: boolean
   ) => HTMLElement | undefined = () => undefined
   let path: { node: Node; next: Node | null; previous: Node | null }[] = []
   const returnTrigger = options.returnTrigger ?? options.trigger
@@ -746,7 +747,7 @@ function createPopupLayer<
     from = upstream,
     near = true
   ) {
-    const inherited = () => from(take)
+    const inherited = () => from(take, near)
     const nearby = near ? [() => neighbour(el)] : []
     return openedWithoutTrigger
       ? [() => before, inherited, returnTrigger, ...nearby, options.trigger]
@@ -757,13 +758,16 @@ function createPopupLayer<
   // each target in turn with its own `take`. Reopened from that popup, each
   // leads back to the other, so the lookup stops there.
   let resolving = false
-  function returnTarget(take: (target: HTMLElement) => boolean = usable) {
+  function returnTarget(
+    take: (target: HTMLElement) => boolean = usable,
+    near = true
+  ) {
     if (resolving) {
       return
     }
     resolving = true
     try {
-      return firstUsable(returnChain(shown?.el, take), take)
+      return firstUsable(returnChain(shown?.el, take, upstream, near), take)
     } finally {
       resolving = false
     }

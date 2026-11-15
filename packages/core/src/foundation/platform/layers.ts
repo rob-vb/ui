@@ -32,8 +32,10 @@ type Layer = {
   keep?: (el: HTMLElement) => () => void
   // Where focus can go when a popup opened from inside this one closes: the
   // first candidate `take` accepts, like one that took focus when tried.
+  // Without `near`, what stands where the trigger was isn't a candidate.
   returnTarget?: (
-    take?: (target: HTMLElement) => boolean
+    take?: (target: HTMLElement) => boolean,
+    near?: boolean
   ) => HTMLElement | undefined
   onEscape?: (event: KeyboardEvent) => void
   onOutsidePress?: (event: Event) => void
