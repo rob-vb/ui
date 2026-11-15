@@ -355,13 +355,17 @@ function datePickerApiBody(
         return false
       }
       store.set({ anchor: null, hover: null })
+      const before = store.get().value
       const result = setValue(value, reason, event)
-      // The calendar turns to a date set from code, as it does to a typed one.
-      const [first] = selectedDates(store.get().value)
+      // The calendar turns to a date set from code, as it does to a typed one:
+      // to the value now held, or to the one asked for while a controlled
+      // value is still on its way.
+      const held = store.get().value
+      const asked = normalizeValue(store.get().mode, value)
+      const [first] = selectedDates(held === before ? asked : held)
       if (
         first &&
-        valueKey(store.get().value) ===
-          valueKey(normalizeValue(store.get().mode, value))
+        (held !== before || result || valueKey(held) === valueKey(asked))
       ) {
         reveal(first, "imperative")
       }

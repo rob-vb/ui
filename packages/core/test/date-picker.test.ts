@@ -231,6 +231,34 @@ describe("datePicker", () => {
     expect(picker.input().hasAttribute("aria-invalid")).toBe(false)
   })
 
+  test("a value set from code turns the calendar to it, controlled or not", () => {
+    for (const options of [
+      { defaultValue: "2026-11-14" },
+      { value: "2026-11-14", onValueChange: vi.fn() },
+    ]) {
+      const controller = createDatePickerController()
+      const picker = mount({ controller, ...options })
+      expect(controller.setValue("2026-12-25")).toBe(true)
+      expect(picker.instance.get().month).toBe("2026-12")
+    }
+  })
+
+  test("a value onValueChange replaced turns the calendar to what it kept", () => {
+    const controller = createDatePickerController()
+    const picker = mount({
+      controller,
+      defaultValue: "2026-11-14",
+      onValueChange(value) {
+        if (value === "2026-12-25") {
+          controller.setValue("2027-01-05")
+        }
+      },
+    })
+    controller.setValue("2026-12-25")
+    expect(picker.instance.get().value).toBe("2027-01-05")
+    expect(picker.instance.get().month).toBe("2027-01")
+  })
+
   test("clearing the text clears the value", async () => {
     const picker = mount({ defaultValue: "2026-10-16" })
     await picker.type("")
