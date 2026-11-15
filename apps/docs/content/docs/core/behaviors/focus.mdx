@@ -319,8 +319,8 @@ api: (context) => ({
 Each cell has a zero-based `row` and `col`. Connect its tab stop, keys and element to the behavior:
 
 ```ts
-seat: slot<{ row: number; col: number }>({
-  props: { row: "number", col: "number" },
+seat: slot<{ id: string; row: number; col: number }>({
+  props: { id: "string", row: "number", col: "number" },
   selects: selects({ active: byCell }),
   attrs: (state, { props, api }) => ({
     role: "gridcell",

@@ -86,7 +86,8 @@ const byCell = {
  *
  * ```ts
  * grid: slot({ role: "grid", keys: { none: "Focus stays on a cell, whose keydown handles them." } }),
- * cell: slot<{ row: number; col: number }>({
+ * cell: slot<{ id: string; row: number; col: number }>({
+ *   props: { id: "string", row: "number", col: "number" },
  *   role: "gridcell",
  *   focus: "roving",
  *   selects: selects({ active: byCell }),
@@ -103,8 +104,9 @@ const byCell = {
  * })
  * ```
  *
- * Shift with a move is reported in `onMove`, so a grid can extend a range
- * selection from it.
+ * Render each cell with a stable `id`, like `"1:2"`, so the primitive can tell
+ * the cells apart. Shift with a move is reported in `onMove`, so a grid can
+ * extend a range selection from it.
  * @experimental
  */
 function createGridFocus<State extends object>(
