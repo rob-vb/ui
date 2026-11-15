@@ -408,7 +408,11 @@ const numberInputPrimitive = /* @__PURE__ */ definePrimitive({
         write()
         // React's wheel listeners are passive, and its beforeinput isn't the
         // native event, so the field listens itself.
-        const onWheel = (event: WheelEvent) => api.internal.wheel(event, input)
+        const onWheel = (event: WheelEvent) => {
+          if (!event.defaultPrevented) {
+            api.internal.wheel(event, input)
+          }
+        }
         const onBeforeInput = (event: InputEvent) => {
           if (!event.defaultPrevented) {
             api.internal.beforeinput(event, input)
