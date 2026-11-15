@@ -319,7 +319,11 @@ function toLatinDigits(text: string, locale: string | undefined) {
     digitMaps.set(key, digits)
   }
   const latin = digits
-  return text.replace(/\p{Nd}/gu, (digit) => latin.get(digit) ?? digit)
+  // Full-width digits, which East Asian input methods commit, fold to ASCII.
+  return text.replace(
+    /\p{Nd}/gu,
+    (digit) => latin.get(digit) ?? digit.normalize("NFKC")
+  )
 }
 
 export { type DateField, datePattern, type DatePattern, parseDate }

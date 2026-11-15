@@ -5,6 +5,10 @@ import { decimalsOf, roundTo } from "./steps"
 
 const minusSigns = /[\u2212\u2012\u2013\uFE63\uFF0D]/g
 const plusSigns = /[\uFE62\uFF0B]/g
+// The full-width digits, comma and period East Asian input methods commit.
+const fullWidth = /[\uFF10-\uFF19\uFF0C\uFF0E]/g
+const halfWidth = (char: string) =>
+  String.fromCharCode(char.charCodeAt(0) - 0xfee0)
 // Bidirectional marks and other invisible format characters some locales add.
 const formatCharacters = /[\u061C\u200E\u200F\u202A-\u202E\u2066-\u2069]/g
 const spaces = /[\s\u00A0\u202F]/g
@@ -87,6 +91,7 @@ function normalize(text: string, symbols: Symbols) {
     .replace(formatCharacters, "")
     .replace(minusSigns, "-")
     .replace(plusSigns, "+")
+    .replace(fullWidth, halfWidth)
   const negative = parenthesized.test(result)
   result = Array.from(result, (char) => symbols.digits.get(char) ?? char).join(
     ""

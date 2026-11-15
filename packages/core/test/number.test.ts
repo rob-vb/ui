@@ -139,6 +139,16 @@ describe("parsing", () => {
     expect(parseNumber("1,5", "de-DE", { useGrouping: false })).toBe(1.5)
   })
 
+  test("reads the full-width digits East Asian input methods commit", () => {
+    expect(parseNumber("１２", "ja-JP")).toBe(12)
+    expect(parseNumber("１２．５", "ja-JP")).toBe(12.5)
+    expect(parseNumber("１，２３４", "zh-CN")).toBe(1234)
+    expect(parseNumber("－１２", "ja-JP")).toBe(-12)
+    expect(
+      parseNumber("￥１２", "ja-JP", { style: "currency", currency: "JPY" })
+    ).toBe(12)
+  })
+
   test("reads accounting negatives in parentheses", () => {
     const accounting = {
       style: "currency",

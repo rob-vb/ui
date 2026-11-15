@@ -24,6 +24,16 @@ test.describe("keyboard", () => {
     expect(await status(page, "Last action")).toBe("quantity:2")
   })
 
+  test("full-width digits from an input method commit as a number", async ({
+    page,
+  }) => {
+    await quantity(page).fill("")
+    await page.keyboard.insertText("１２")
+    await page.keyboard.press("Enter")
+    await expect(quantity(page)).toHaveValue("12")
+    expect(await status(page, "Last action")).toBe("quantity:12")
+  })
+
   test("Shift with an arrow key steps by the large step", async ({ page }) => {
     await quantity(page).focus()
     await page.keyboard.press("Shift+ArrowUp")

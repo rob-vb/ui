@@ -322,6 +322,11 @@ describe("typing a date", () => {
     expect(parseDate("2026/10/16", "ja")).toBe("2026-10-16")
   })
 
+  test("reads the full-width digits East Asian input methods commit", () => {
+    expect(parseDate("２０２６/１０/１６", "ja")).toBe("2026-10-16")
+    expect(parseDate("１０/１６/２０２６", "en-US")).toBe("2026-10-16")
+  })
+
   test("reads ISO dates in any locale", () => {
     expect(parseDate("2026-10-16", "en-US")).toBe("2026-10-16")
     expect(parseDate(" 2026-10-16 ", "de")).toBe("2026-10-16")

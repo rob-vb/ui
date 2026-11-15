@@ -546,16 +546,18 @@ function dateInputApiBody(
   function adopt(
     type: EditableType,
     el: HTMLInputElement,
-    text: string,
+    typed: string,
     event?: Event
   ) {
     const shown = segmentFor(store.get(), type)?.text ?? ""
-    if (text === shown) {
+    if (typed === shown) {
       return
     }
     if (!editable()) {
       return
     }
+    // East Asian input methods commit full-width digits and letters.
+    const text = typed.normalize("NFKC")
     const digits = text.replace(/\D/g, "")
     if (type === "dayPeriod" || digits === "") {
       const letter = text.replace(/[^\p{L}]/gu, "").slice(-1)

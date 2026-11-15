@@ -363,6 +363,8 @@ const dateInputSlots = (slot: SlotFactory<State, DateInputApi>) => ({
       }
       input.addEventListener("beforeinput", onBeforeInput)
       input.addEventListener("input", onInput)
+      // Browsers differ on whether an `input` follows the end of a composition.
+      input.addEventListener("compositionend", onInput)
       input.addEventListener("focus", select)
       const unsubscribe = store.subscribe(write)
       return () => {
@@ -370,6 +372,7 @@ const dateInputSlots = (slot: SlotFactory<State, DateInputApi>) => ({
         cancelAnimationFrame(frame)
         input.removeEventListener("beforeinput", onBeforeInput)
         input.removeEventListener("input", onInput)
+        input.removeEventListener("compositionend", onInput)
         input.removeEventListener("focus", select)
       }
     },

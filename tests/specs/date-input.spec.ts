@@ -325,3 +325,31 @@ test("a disabled date can't be focused", async ({ page, open }) => {
   await expect(segment(page, "month")).toBeDisabled()
   await expect(group(page)).toHaveAttribute("data-disabled", "")
 })
+
+const compose = async (page: import("@playwright/test").Page, text: string) => {
+  const session = await page.context().newCDPSession(page)
+  await session.send("Input.imeSetComposition", {
+    text,
+    selectionStart: text.length,
+    selectionEnd: text.length,
+  })
+  await session.send("Input.insertText", { text })
+  await session.detach()
+}
+
+test("digits committed through an input method fill the segment", async ({
+  page,
+  open,
+}) => {
+  await open("date-input")
+  await segment(page, "month").click()
+  await compose(page, "11")
+  await segment(page, "day").click()
+  await compose(page, "4")
+  await segment(page, "year").click()
+  await compose(page, "２０２６")
+  expect(await shown(page)).toBe("11/04/2026")
+  await expect
+    .poll(() => lastAction(page))
+    .toBe(dateInputAction.change("date", "2026-11-04", "input-change"))
+})
