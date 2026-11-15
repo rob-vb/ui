@@ -226,7 +226,7 @@ function listboxApiBody(
 
   function setValue(value: unknown, { reason, event }: Change) {
     const state = store.get()
-    if (isDisabled(state) || (state.readOnly && reason !== "reset")) {
+    if (reason !== "reset" && (isDisabled(state) || state.readOnly)) {
       return false
     }
     selection.stopRestoring()

@@ -565,7 +565,7 @@ function comboboxApiBody(
     }: { reason?: ComboboxValueChangeReason; event?: Event } = {}
   ) {
     const state = store.get()
-    if (isDisabled(state) || (state.readOnly && reason !== "reset")) {
+    if (reason !== "reset" && (isDisabled(state) || state.readOnly)) {
       return false
     }
     selection.stopRestoring()
