@@ -30,7 +30,7 @@ Tooltip
 
 Wrap the trigger and its hint in a tooltip. The arrow and the shortcut are optional.
 
-The content has the `tooltip` role, and it's in the page from the start, hidden, so it names or describes its trigger before focus reaches it. It names a trigger without a name of its own, like a button with only an icon, and describes any other: one with text, an `aria-label` or a `title`. `type="label"` or `type="description"` overrides the guess. Keep it to plain text: a tooltip can't be focused, so links or buttons inside it can't be reached. For anything interactive, use a [Popover](./popover) or a [Hover Card](./hover-card).
+The content has the `tooltip` role, and it's in the page from the start, hidden, so it names or describes its trigger before focus reaches it. It names a trigger without a name of its own, like a button with only an icon, and describes any other: one with text, an `aria-label` or a `title`. `type="label"` or `type="description"` overrides the guess. The guess happens in the browser, so server-rendered HTML describes a trigger with only an icon until then. Pass `type="label"` to name it from the first HTML. Keep it to plain text: a tooltip can't be focused, so links or buttons inside it can't be reached. For anything interactive, use a [Popover](./popover) or a [Hover Card](./hover-card).
 
 ## Usage
 
