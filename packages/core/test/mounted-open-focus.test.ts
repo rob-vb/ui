@@ -143,3 +143,40 @@ test("a dialog removed along with the menu that opened it leaves focus alone on 
   await settle()
   expect(document.activeElement).toBe(document.body)
 })
+
+test("a dialog removed along with the row whose menu opened it moves focus to the next row", async () => {
+  const actions = mount(
+    menu,
+    {},
+    `<trigger>Actions</trigger><content><item value="delete">Delete</item></content>`
+  )
+  const list = document.body.appendChild(document.createElement("ul"))
+  let row: Element = actions.part("trigger")!
+  while (row.parentElement !== document.body) {
+    row = row.parentElement!
+  }
+  const following = document.createElement("button")
+  list.append(row, following)
+  await actions.click(actions.part("trigger")!)
+  await settle()
+  const item = actions.part("item")!
+  let view!: ReturnType<typeof mount<typeof dialog>>
+  item.addEventListener(
+    "click",
+    () => {
+      view = mount(
+        dialog,
+        { defaultOpen: true },
+        `<content><title>Delete</title><close>Close</close></content>`
+      )
+    },
+    { capture: true }
+  )
+  await actions.click(item)
+  await settle()
+  row.remove()
+  view.unmount()
+  actions.unmount()
+  await settle()
+  expect(document.activeElement).toBe(following)
+})
