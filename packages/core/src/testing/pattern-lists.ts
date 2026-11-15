@@ -85,8 +85,7 @@ async function listbox(context: PatternContext) {
   }
   const composite: Composite = {
     container: box,
-    items: () =>
-      withRole(box, ["option"]).filter((option) => !isUnreachable(option)),
+    items: () => withRole(box, ["option"]),
     noun: "option",
     source: "listbox",
   }
@@ -529,8 +528,7 @@ async function tree(context: PatternContext) {
   }
   const composite: Composite = {
     container: box,
-    items: () =>
-      withRole(box, ["treeitem"]).filter((item) => !isUnreachable(item)),
+    items: () => withRole(box, ["treeitem"]),
     noun: "item",
     source: "tree view",
   }

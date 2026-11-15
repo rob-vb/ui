@@ -1,15 +1,7 @@
 // The patterns that open over the page: menu (with its menu button),
 // dialog, alert dialog and combobox. Each checks the open popup and its
 // trigger, drives its keys, and opens it again when a key closed it.
-import {
-  describe,
-  ids,
-  isRtl,
-  isUnreachable,
-  roleOf,
-  tabStops,
-  withRole,
-} from "./aria"
+import { describe, ids, isRtl, roleOf, tabStops, withRole } from "./aria"
 import {
   checkNavigation,
   checkTabStop,
@@ -415,8 +407,7 @@ async function checkActiveOption(
 ) {
   const composite: Composite = {
     container: popup,
-    items: () =>
-      withRole(popup, ["option"]).filter((option) => !isUnreachable(option)),
+    items: () => withRole(popup, ["option"]),
     noun: "option",
     source: "combobox",
   }

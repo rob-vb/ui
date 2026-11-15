@@ -55,8 +55,9 @@ function isUndisplayed(
 }
 
 /**
- * Every element in `scope` with one of `roles`, in page order, leaving out what isn't rendered. With
- * `displayed` false it keeps what styles hide, like a collapsed tree branch's group, for structure checks.
+ * Every element in `scope` with one of `roles`, in page order, leaving out what isn't rendered or is
+ * hidden from screen readers, like a form's hidden native input. With `displayed` false it keeps what
+ * styles hide, like a collapsed tree branch's group, for structure checks.
  */
 function withRole(scope: Element, roles: string[], { displayed = true } = {}) {
   const known = new Map<Element, boolean>()
@@ -64,6 +65,7 @@ function withRole(scope: Element, roles: string[], { displayed = true } = {}) {
     (el) =>
       roles.includes(roleOf(el)) &&
       !isGone(el) &&
+      !isUnreachable(el) &&
       (!displayed || !isUndisplayed(el, known))
   )
 }

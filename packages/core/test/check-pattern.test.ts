@@ -153,6 +153,20 @@ describe("our primitives pass", () => {
     expect(radioView.state.value).toBe("m")
   })
 
+  test("radio group with the hidden native radios a form needs", async () => {
+    const radioView = view(
+      mount(
+        radioGroup,
+        { defaultValue: "m", name: "size" },
+        `<group aria-label="Size">
+          <root value="s">Small</root><input value="s"></input>
+          <root value="m">Medium</root><input value="m"></input>
+        </group>`
+      )
+    )
+    await checkPattern(radioView.root, "radio-group")
+  })
+
   test("toolbar", async () => {
     const toolbarView = view(
       mount(
@@ -857,4 +871,20 @@ describe("broken markup fails", () => {
       'checkPattern doesn\'t support "grid" yet. It supports listbox, menu, menubar, tabs, radio-group'
     )
   })
+})
+
+test("a hand-made checkbox group passes with a hidden native input beside its checkboxes", async () => {
+  const group = document.body.appendChild(document.createElement("div"))
+  group.innerHTML = `<div role="group" aria-label="Toppings">
+    <button role="checkbox" aria-checked="true" aria-label="Cheese"></button>
+    <input type="checkbox" checked aria-hidden="true" tabindex="-1">
+  </div>`
+  const cheese = group.querySelector("button")!
+  cheese.addEventListener("click", () =>
+    cheese.setAttribute(
+      "aria-checked",
+      String(cheese.getAttribute("aria-checked") !== "true")
+    )
+  )
+  await expect(checkPattern(group, "checkbox")).resolves.toBeUndefined()
 })
