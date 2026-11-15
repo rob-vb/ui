@@ -81,6 +81,7 @@ function createPointerDriver(options: SheetDriverOptions) {
   // isn't the sheet's. A framework's own listener runs after the sheet's.
   let press: PointerEvent | null = null
   let targetId: string | null = null
+  let caught: string | null = null
   const point = { x: 0, y: 0 }
   const tracker = createVelocityTracker({
     horizon: options.config().physics.velocityHorizon,
@@ -480,6 +481,8 @@ function createPointerDriver(options: SheetDriverOptions) {
     }
     pointerId = event.pointerId
     mouseDragged = false
+    caught =
+      state.phase === "settling" && state.targetIndex >= 0 ? targetId : null
     coast = null
     tracker.reset()
     axisPoint(options.side(), event.clientX, event.clientY, point)
@@ -505,7 +508,7 @@ function createPointerDriver(options: SheetDriverOptions) {
       return
     }
     if (press && isDragPress(press)) {
-      return release(event, 0)
+      return release(event, 0, caught)
     }
     // Engines without coalescing, and synthetic events, give an empty list.
     const coalesced = event.getCoalescedEvents?.()
@@ -548,13 +551,28 @@ function createPointerDriver(options: SheetDriverOptions) {
     }
   }
 
-  function release(event: PointerEvent, velocity: number) {
+  // `resume` is the snap point a settle was heading to when the press caught
+  // it: the sheet goes on there, since letting go mid-settle could dismiss it.
+  function release(
+    event: PointerEvent,
+    velocity: number,
+    resume: string | null = null
+  ) {
     pointerId = null
     press = null
     offPointer.forEach((off) => off())
     offPointer = []
     sheet.style.removeProperty("user-select")
-    dispatch({ type: "up", time: event.timeStamp, velocity }, event)
+    const time = event.timeStamp
+    const index = options
+      .config()
+      .snapPoints.findIndex((point) => point.id === resume)
+    if (resume !== null && index >= 0) {
+      state = initialState(state.extent, index)
+      dispatch({ type: "snap-to", time, id: resume, reason: "imperative" })
+    } else {
+      dispatch({ type: "up", time, velocity }, event)
+    }
     if (mouseDragged) {
       swallowNextClick(doc)
     }
