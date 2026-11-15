@@ -412,6 +412,32 @@ test.describe("indicator", () => {
     await expect.poll(() => coversTab(page, "Notifications")).toBe(true)
   })
 
+  test("the first move animates when styles skip transitions for the first placement", async ({
+    page,
+    open,
+  }) => {
+    await open("tabs")
+    await expect.poll(() => coversTab(page, "Account")).toBe(true)
+    await page.addStyleTag({
+      content: `
+        [data-slot="tabs-indicator"] {
+          transition: translate 5s, width 5s, left 5s !important;
+        }
+        [data-slot="tabs-indicator"][data-activation-direction="none"] {
+          transition: none !important;
+        }
+      `,
+    })
+    await tabNamed(page, "Notifications").click()
+    await expect
+      .poll(() =>
+        page
+          .locator('[data-slot="tabs-indicator"]')
+          .evaluate((el) => el.getAnimations().length)
+      )
+      .toBeGreaterThan(0)
+  })
+
   test("the indicator follows the selected tab when it resizes", async ({
     page,
     open,

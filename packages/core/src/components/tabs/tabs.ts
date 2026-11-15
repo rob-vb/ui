@@ -726,6 +726,12 @@ const tabsPrimitive = /* @__PURE__ */ definePrimitive({
                 return
               }
               value = store.get().value
+              // Ahead of the render, so styles that skip transitions while
+              // the direction is "none" animate the first move too.
+              el.setAttribute(
+                "data-activation-direction",
+                store.get().direction
+              )
               remeasure()
             })
             const offTabsChange = api.internal.onTabsChange(remeasure)
