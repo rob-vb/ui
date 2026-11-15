@@ -1,11 +1,13 @@
 import type { PrimitiveGeneric } from "../../foundation/kernel/primitive-types"
 import type { SliderOptions } from "./slider"
 
-// Slider's types as functions of its value type `T`, one number or a list of
-// them, so every renderer's `Slider` infers it from its value or callbacks.
+// Slider's types as functions of its value type `T`, a number or a list of
+// them. Unknown here: a renderer narrows `T` by intersecting it, and a number
+// intersected with `number | number[]` keeps `number[] & number` beside it.
 interface SliderGeneric extends PrimitiveGeneric {
-  T: number | number[]
-  options: SliderOptions<this["T"]>
+  T: unknown
+  defaults: { T: number | number[] }
+  options: SliderOptions<Extract<this["T"], number | number[]>>
 }
 
 export type { SliderGeneric }

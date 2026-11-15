@@ -32,3 +32,23 @@ declare const volume: number
 />
 // @ts-expect-error Values are numbers.
 ;<Slider value="50" />
+
+type Equal<A, B> =
+  (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2
+    ? true
+    : false
+const exactly = <T, Expected>(_value: T, _same: Equal<T, Expected>) => {}
+
+// The callback's value is the value's type itself, with nothing beside it.
+;<Slider<number>
+  onValueChange={(value) => exactly<typeof value, number>(value, true)}
+/>
+;<Slider
+  defaultValue={[20, 80]}
+  onValueChange={(value) => exactly<typeof value, number[]>(value, true)}
+/>
+;<Slider
+  onValueCommit={(value) =>
+    exactly<typeof value, number | number[]>(value, true)
+  }
+/>
