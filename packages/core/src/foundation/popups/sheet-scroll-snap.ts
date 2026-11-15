@@ -426,12 +426,29 @@ function createScrollSnapDriver(options: SheetDriverOptions) {
                 points.map((point) => point.extent),
                 scrollExtent()
               )
+      const top = extentAtTop
       layout()
       // Safari and Firefox don't always re-snap after the markers move, so the position is set.
       const point = points[index]
       if (point.id !== targetId) {
         targetId = point.id
         options.onSnap(point.id, "content-resize")
+      }
+      // A sheet on its way is aimed at where it rests now. The flip stays the
+      // same object, so an open waiting for its first frame still starts there.
+      if (flip) {
+        const moving = flip
+        const now = performance.now()
+        if (moving.to !== point.extent || extentAtTop !== top) {
+          animateTo(
+            point.extent,
+            moving.extentAt(now - moving.startTime),
+            Math.max(now, moving.startTime),
+            () => settle(point.id)
+          )
+          flip = Object.assign(moving, flip)
+        }
+        return
       }
       host.scrollTop = point.extent - extentAtTop
       settle(point.id)
