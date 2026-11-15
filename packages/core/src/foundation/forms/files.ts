@@ -245,7 +245,8 @@ function formatFileSize(bytes: number, locale?: string) {
   return new Intl.NumberFormat(locale, {
     style: "unit",
     unit: sizeUnits[unit],
-    unitDisplay: "short",
+    // The short form of a byte is the word in the singular, like "70 byte".
+    unitDisplay: unit ? "short" : "long",
     maximumFractionDigits: value < 10 && unit > 0 ? 1 : 0,
   }).format(value)
 }

@@ -251,7 +251,8 @@ describe("folders", () => {
 })
 
 test("formats file sizes in the locale", () => {
-  expect(formatFileSize(512, "en-US")).toBe("512 byte")
+  expect(formatFileSize(512, "en-US")).toBe("512 bytes")
+  expect(formatFileSize(1, "en-US")).toBe("1 byte")
   expect(formatFileSize(1536, "en-US")).toBe("1.5 kB")
   expect(formatFileSize(25_000_000, "en-US")).toBe("25 MB")
   expect(formatFileSize(1536, "de-DE")).toBe("1,5 kB")
