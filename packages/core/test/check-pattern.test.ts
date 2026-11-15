@@ -278,6 +278,29 @@ describe("our primitives pass", () => {
     await checkPattern(popoverView.root, "dialog")
   })
 
+  test.each([
+    ["popover", popover],
+    ["dialog", dialog],
+  ])(
+    "a %s that only traps focus passes as a dialog without aria-modal",
+    async (_name, primitive) => {
+      const trapView = view(
+        mount(
+          primitive as typeof popover,
+          { modal: "trap-focus" },
+          `<div>
+            <trigger>Share</trigger>
+            <content><title>Share</title><button>Copy link</button><close>Close</close></content>
+            <button>After</button>
+          </div>`
+        )
+      )
+      await trapView.click(trapView.part("trigger")!)
+      await checkPattern(trapView.root, "dialog")
+      expect(trapView.part("content")!.hasAttribute("aria-modal")).toBe(false)
+    }
+  )
+
   test("dialog", async () => {
     const dialogView = view(
       mount(
@@ -615,6 +638,50 @@ test("a hand-made listbox passes when the slot it renders an option in is hidden
   await checkPattern(root, "listbox")
 })
 
+// Tab wraps by hand inside `#box`, the way a dialog keeps focus inside, from its first button.
+function trapTab(root: HTMLElement) {
+  const box = root.querySelector<HTMLElement>("#box")!
+  box.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab") {
+      return
+    }
+    event.preventDefault()
+    const stops = [...box.querySelectorAll("button")]
+    const next =
+      stops[
+        (stops.indexOf(document.activeElement as HTMLButtonElement) +
+          (event.shiftKey ? stops.length - 1 : 1)) %
+          stops.length
+      ]
+    next.focus()
+  })
+  root.querySelector<HTMLElement>("#one")!.focus()
+  return root
+}
+
+test("a hand-made dialog that keeps Tab inside and leaves the page usable passes without aria-modal", async () => {
+  const root = render(`<div>
+    <main><button id="opener" aria-haspopup="dialog" aria-expanded="true" aria-controls="box">Open</button></main>
+    <aside inert>A closed panel</aside>
+    <div id="box" role="dialog" aria-label="Box"><button id="one">One</button><button id="two">Two</button></div>
+  </div>`)
+  const box = root.querySelector<HTMLElement>("#box")!
+  const opener = root.querySelector<HTMLElement>("#opener")!
+  box.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      box.hidden = true
+      opener.setAttribute("aria-expanded", "false")
+      opener.focus()
+    }
+  })
+  opener.addEventListener("click", () => {
+    box.hidden = false
+    opener.setAttribute("aria-expanded", "true")
+    root.querySelector<HTMLElement>("#one")!.focus()
+  })
+  await checkPattern(trapTab(root), "dialog")
+})
+
 describe("broken markup fails", () => {
   test("a listbox whose arrows don't move past an option its styles hide", async () => {
     const root = render(`
@@ -638,32 +705,24 @@ describe("broken markup fails", () => {
     )
   })
 
-  test("a dialog that keeps Tab inside without aria-modal", async () => {
-    const root = render(`<div>
-      <button id="opener" aria-haspopup="dialog" aria-expanded="true" aria-controls="box">Open</button>
-      <div id="box" role="dialog" aria-label="Box"><button id="one">One</button><button id="two">Two</button></div>
-    </div>`)
-    const box = root.querySelector<HTMLElement>("#box")!
-    // Tab wraps by hand, the way a modal dialog keeps focus inside.
-    box.addEventListener("keydown", (event) => {
-      if (event.key !== "Tab") {
-        return
-      }
-      event.preventDefault()
-      const stops = [...box.querySelectorAll("button")]
-      const next =
-        stops[
-          (stops.indexOf(document.activeElement as HTMLButtonElement) +
-            (event.shiftKey ? stops.length - 1 : 1)) %
-            stops.length
-        ]
-      next.focus()
-    })
-    root.querySelector<HTMLElement>("#one")!.focus()
-    await expect(checkPattern(root, "dialog")).rejects.toThrow(
-      /is modal but has no aria-modal="true"/
-    )
-  })
+  test.each([
+    [
+      "with its trigger",
+      `<button aria-haspopup="dialog" aria-expanded="true" aria-controls="box">Open</button>`,
+    ],
+    ["with what sits beside it", `<p>The page</p>`],
+  ])(
+    "a dialog that makes the page behind it inert, %s, without aria-modal",
+    async (_name, page) => {
+      const root = render(`<div>
+        <main inert>${page}</main>
+        <div id="box" role="dialog" aria-label="Box"><button id="one">One</button><button id="two">Two</button></div>
+      </div>`)
+      await expect(checkPattern(trapTab(root), "dialog")).rejects.toThrow(
+        /is modal but has no aria-modal="true"/
+      )
+    }
+  )
 
   test("a modal dialog whose Tab keeps focus where it is", async () => {
     const root = render(`<div>

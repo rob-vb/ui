@@ -79,8 +79,8 @@ const checks: Partial<
  *
  * It holds widgets to more than the APG's letter in three places: Home and
  * End are required in a listbox, tabs and a toolbar, where the APG makes them
- * optional; a modal dialog, one that keeps Tab inside or makes the page
- * inert, needs `aria-modal="true"`; and a tablist needs a name.
+ * optional; a modal dialog, one that makes the page behind it inert, needs
+ * `aria-modal="true"`; and a tablist needs a name.
  *
  * @example
  * const view = mount(tabs, { defaultValue: "a" }, markup)
