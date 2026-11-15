@@ -78,6 +78,9 @@ const checkedOf = (el: Element) =>
     ? String(el.checked)
     : (el.getAttribute("aria-checked") ?? "")
 
+// `aria-readonly` says a control keeps its state: it takes focus, never a change.
+const isReadOnly = (el: Element) => el.getAttribute("aria-readonly") === "true"
+
 function isTabStop(el: Element, known: Map<Element, boolean>) {
   if (!el.matches(focusable) || isGone(el)) {
     return false
@@ -206,6 +209,7 @@ export {
   hasBoolean,
   ids,
   isGone,
+  isReadOnly,
   isRtl,
   isUndisplayed,
   isUnreachable,

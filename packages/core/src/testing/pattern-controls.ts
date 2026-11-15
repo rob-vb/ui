@@ -8,6 +8,7 @@ import {
   hasBoolean,
   ids,
   isGone,
+  isReadOnly,
   isRtl,
   roleOf,
   withRole,
@@ -27,6 +28,7 @@ const controls = (context: PatternContext, roles: string[]) =>
 
 // Presses `key` on `el` and checks its state changed, then presses it until
 // the state is back, up to `cycle` presses for a state with more than two values.
+// A read-only control keeps its state instead.
 async function checkToggles(
   context: PatternContext,
   el: Element,
@@ -37,6 +39,15 @@ async function checkToggles(
   await context.focus(el)
   const before = state()
   await context.press(key)
+  if (isReadOnly(el)) {
+    if (state() !== before) {
+      context.problem(
+        el,
+        `${key} changed ${name} from "${before}", but aria-readonly="true" says it can't change (ARIA: aria-readonly).`
+      )
+    }
+    return
+  }
   if (state() === before) {
     context.problem(
       el,
@@ -313,6 +324,17 @@ async function checkSliderKeys(context: PatternContext, thumb: Element) {
   }
   await context.focus(thumb)
   const start = value()
+  if (isReadOnly(thumb)) {
+    const key = start >= max() ? decrease : increase
+    await context.press(key)
+    if (value() !== start) {
+      context.problem(
+        thumb,
+        `${key} changed the value from ${start} to ${value()}, but aria-readonly="true" says it can't change (ARIA: aria-readonly).`
+      )
+    }
+    return
+  }
   // Up raises in either orientation. At the maximum, each pair lowers first.
   const pairs = vertical
     ? [[increase, decrease]]

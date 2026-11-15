@@ -262,6 +262,48 @@ describe("our primitives pass", () => {
     await checkPattern(sliderView.root, "slider")
   })
 
+  test("read-only controls, which take focus and keep their state", async () => {
+    const switchView = view(
+      mount(
+        switchPrimitive,
+        { readOnly: true, defaultChecked: true },
+        `<root aria-label="Wi-Fi"><thumb></thumb></root>`
+      )
+    )
+    await checkPattern(switchView.root, "switch")
+    const checkboxView = view(
+      mount(
+        checkbox,
+        { readOnly: true },
+        `<root aria-label="Accept"><indicator></indicator></root>`
+      )
+    )
+    await checkPattern(checkboxView.root, "checkbox")
+    const sliderView = view(
+      mount(
+        slider,
+        { readOnly: true, defaultValue: 30 },
+        `<root aria-label="Volume">
+          <control><track><indicator></indicator><thumb><thumb-input aria-label="Volume"></thumb-input></thumb></track></control>
+        </root>`
+      )
+    )
+    await checkPattern(sliderView.root, "slider")
+    const radioView = view(
+      mount(
+        radioGroup,
+        { readOnly: true, defaultValue: "m" },
+        `<group aria-label="Size">
+          <root value="s">Small</root>
+          <root value="m">Medium</root>
+          <root value="l">Large</root>
+        </group>`
+      )
+    )
+    await checkPattern(radioView.root, "radio-group")
+    expect(radioView.state.value).toBe("m")
+  })
+
   test("a non-modal popover passes as a dialog without aria-modal", async () => {
     const popoverView = view(
       mount(
@@ -762,6 +804,53 @@ describe("broken markup fails", () => {
     )
     await expect(checkPattern(root, "disclosure")).rejects.toThrow(
       `checkPattern found 1 problem with the disclosure pattern:\n- button "Details": aria-controls points at "details", which isn't in the page`
+    )
+  })
+
+  test("a read-only switch that Space still toggles", async () => {
+    const button = render(
+      `<button type="button" role="switch" aria-checked="true" aria-readonly="true">Encrypt backups</button>`
+    )
+    button.addEventListener("click", () =>
+      button.setAttribute(
+        "aria-checked",
+        String(button.getAttribute("aria-checked") !== "true")
+      )
+    )
+    await expect(checkPattern(button, "switch")).rejects.toThrow(
+      `checkPattern found 1 problem with the switch pattern:\n- button[role=switch] "Encrypt backups": Space changed aria-checked from "true", but aria-readonly="true" says it can't change`
+    )
+  })
+
+  test("a read-only slider whose arrows still move it", async () => {
+    const thumb = render(
+      `<div role="slider" tabindex="0" aria-label="Volume" aria-readonly="true" aria-valuenow="30"></div>`
+    )
+    thumb.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight") {
+        thumb.setAttribute("aria-valuenow", "31")
+      }
+    })
+    await expect(checkPattern(thumb, "slider")).rejects.toThrow(
+      `ArrowRight changed the value from 30 to 31, but aria-readonly="true" says it can't change`
+    )
+  })
+
+  test("a read-only radio group whose arrows still check", async () => {
+    const root =
+      render(`<div role="radiogroup" aria-label="Size" aria-readonly="true">
+      <div role="radio" aria-checked="true" tabindex="0">Small</div>
+      <div role="radio" aria-checked="false" tabindex="-1">Medium</div>
+    </div>`)
+    rove(root, "[role=radio]", {
+      onMove: (item) => {
+        for (const radio of root.querySelectorAll("[role=radio]")) {
+          radio.setAttribute("aria-checked", String(radio === item))
+        }
+      },
+    })
+    await expect(checkPattern(root, "radio-group")).rejects.toThrow(
+      `[role=radio] "Medium": ArrowDown checked it, but the group's aria-readonly="true" says it can't change`
     )
   })
 
