@@ -380,13 +380,11 @@ function buttonsOf(parts: Bound[]) {
 const rootOf = (parts: Bound[]) =>
   parts.find((part) => part.slot === "root" && !part.key)?.el
 
-// The button a component is, like a Button's root, which `press` presses with no text.
+// The button a component is, like a Button's root, which `press` presses with
+// no text. A root rendered as a link is one too, like a Button's or an Avatar's.
 function ownButton(parts: Bound[]) {
   const root = rootOf(parts)
-  if (
-    root &&
-    (root.tagName === "BUTTON" || root.getAttribute("role") === "button")
-  ) {
+  if (root?.matches('button, [role="button"], a[href]')) {
     return root
   }
 }

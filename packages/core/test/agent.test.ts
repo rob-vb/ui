@@ -1576,6 +1576,31 @@ describe("agent", () => {
     })
   })
 
+  test("a button rendered as a link lists press and takes it", async () => {
+    const agent = createAgent()
+    const instance = button({ id: "start" } as Parameters<typeof button>[0])
+    const el = document.createElement("a")
+    el.href = "#docs"
+    el.textContent = "Get started"
+    const onClick = vi.fn((event: Event) => event.preventDefault())
+    el.addEventListener("click", onClick)
+    document.body.append(el)
+    cleanups.push(bind(instance.part("root"), el), () => instance.destroy())
+    expect(agent.snapshot()[0]).toMatchObject({
+      component: "button",
+      label: "Get started",
+      actions: ["press"],
+    })
+    const pressed = await agent.act({
+      steps: [{ ref: "Get started", action: "press" }],
+    })
+    expect(pressed).toMatchObject({
+      ok: true,
+      steps: [{ result: 'Pressed "Get started".' }],
+    })
+    expect(onClick).toHaveBeenCalledTimes(1)
+  })
+
   test("a press takes a button's own text", async () => {
     const agent = createAgent()
     const action = vi.fn()
