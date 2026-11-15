@@ -61,3 +61,47 @@ test("a trigger named by its own aria-labelledby keeps it, on the server too", a
       .getAttribute("aria-labelledby")
   ).toBe("fruit")
 })
+
+const listNaming = () => {
+  const list = document.querySelector('[role="listbox"]')!
+  return [list.getAttribute("aria-label"), list.getAttribute("aria-labelledby")]
+}
+
+test("a list open from the start takes the name its trigger was given", async () => {
+  const container = document.body.appendChild(document.createElement("div"))
+  root = createRoot(container)
+  await React.act(async () =>
+    root!.render(
+      <Select items={["Apple", "Pear"]} defaultOpen>
+        <SelectTrigger aria-label="Fruit">
+          <SelectValue />
+        </SelectTrigger>
+      </Select>
+    )
+  )
+  await React.act(async () => new Promise((resolve) => setTimeout(resolve, 10)))
+  expect(listNaming()).toEqual(["Fruit", null])
+})
+
+test("a list opened in a Field takes the Field's label as its name", async () => {
+  const container = document.body.appendChild(document.createElement("div"))
+  root = createRoot(container)
+  await React.act(async () =>
+    root!.render(
+      <Field>
+        <FieldLabel>Fruit</FieldLabel>
+        <Select items={["Apple", "Pear"]}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+        </Select>
+      </Field>
+    )
+  )
+  await React.act(async () => new Promise((resolve) => setTimeout(resolve, 10)))
+  await React.act(async () =>
+    container.querySelector<HTMLElement>('[role="combobox"]')!.click()
+  )
+  await React.act(async () => new Promise((resolve) => setTimeout(resolve, 10)))
+  expect(listNaming()).toEqual(["Fruit", null])
+})

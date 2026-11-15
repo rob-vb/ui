@@ -28,6 +28,7 @@ import {
   warnIfUnnamed,
 } from "../../foundation/lists/listbox-parts"
 import { flagWhileBound, settleFlag } from "../../foundation/kernel/bound-keys"
+import { accessibleName } from "../../foundation/text/accessible-name"
 import {
   itemIconsFeature,
   optionIcon,
@@ -112,6 +113,22 @@ function contentState(state: SelectState, { api }: { api: SelectApi }) {
     multiple: state.multiple,
     items: api.internal.listbox.visibleData()?.list ?? noItems,
     status: state.status,
+  }
+}
+
+// A list that points at its trigger is named after the value the trigger
+// shows, not the trigger's name (accname 1.2, step 2E), so it copies the name,
+// once `labeled` settles: a list that hydrates keeps the server's attributes.
+function listName(state: SelectState, id: string, api: SelectApi) {
+  if (state.labeled) {
+    return { "aria-labelledby": `${id}-label` }
+  }
+  const trigger =
+    state.labeled === false ? api.internal.triggerElement() : undefined
+  const name = (trigger && accessibleName(trigger)) || undefined
+  return {
+    "aria-labelledby": name ? undefined : `${id}-trigger`,
+    "aria-label": name,
   }
 }
 
@@ -320,15 +337,11 @@ const selectSlots = (slot: SlotFactory<SelectState, SelectApi>) => ({
       searching(state)
         ? [...listStepKeys, "Enter", "Tab"]
         : [...listStepKeys, "Home", "End", "Enter", " ", "Tab", "typeahead"],
-    attrs: (state, { id }) => ({
+    attrs: (state, { id, api }) => ({
       ...popupContentAttrs(state, id),
       "aria-multiselectable":
         !state.listed && state.multiple ? "true" : undefined,
-      "aria-labelledby": state.listed
-        ? undefined
-        : state.labeled
-          ? `${id}-label`
-          : `${id}-trigger`,
+      ...(state.listed ? undefined : listName(state, id, api)),
       "aria-busy":
         !state.listed && state.status === "loading" ? "true" : undefined,
       "data-presentation": state.presentation,
@@ -362,10 +375,10 @@ const selectSlots = (slot: SlotFactory<SelectState, SelectApi>) => ({
     role: "listbox",
     keys: { none: "The content around it handles them." },
     state: contentState,
-    attrs: (state, { id }) => ({
+    attrs: (state, { id, api }) => ({
       id: `${id}-list`,
       "aria-multiselectable": state.multiple ? "true" : undefined,
-      "aria-labelledby": state.labeled ? `${id}-label` : `${id}-trigger`,
+      ...listName(state, id, api),
       "aria-busy": state.status === "loading" ? "true" : undefined,
     }),
     bind: (el, { store }) => flagWhileBound(store, "listed"),

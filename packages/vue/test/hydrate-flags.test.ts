@@ -21,7 +21,17 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from "../src/popover"
-import { Select, SelectLabel, SelectTrigger } from "../src/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "../src/select"
+
+HTMLElement.prototype.showPopover ??= function () {}
+HTMLElement.prototype.hidePopover ??= function () {}
 
 afterEach(() => document.body.replaceChildren())
 
@@ -44,6 +54,22 @@ test("a select's label names its trigger once hydrated", async () => {
   expect(
     document.querySelector('[role="combobox"]')!.getAttribute("aria-labelledby")
   ).toContain(label.id)
+})
+
+test("an open select's list takes its trigger's name once hydrated", async () => {
+  await hydrate(() =>
+    h(Select, { defaultOpen: true, defaultValue: "pro" }, () => [
+      h(SelectTrigger, { "aria-label": "Plan" }, () => h(SelectValue)),
+      h(SelectContent, null, () =>
+        h(SelectItem, { value: "pro", label: "Pro" })
+      ),
+    ])
+  )
+  const list = document.querySelector('[role="listbox"]')!
+  expect([
+    list.getAttribute("aria-label"),
+    list.getAttribute("aria-labelledby"),
+  ]).toEqual(["Plan", null])
 })
 
 test("an open dialog's description describes it once hydrated", async () => {
