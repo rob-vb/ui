@@ -357,24 +357,30 @@ const isShown = (el: HTMLElement) =>
   (el.checkVisibility?.() ?? !el.closest("[hidden]")) &&
   !el.closest('[aria-hidden="true"]')
 
+// A toast's action and close, which are on the page whenever the toast is,
+// and are its buttons whatever they render as, like an action that's a link.
+const toastButtons = (parts: Bound[]) =>
+  parts
+    .filter(
+      (part) =>
+        (part.slot === "action" || part.slot === "close") && part.props.toast
+    )
+    .map((part) => part.el)
+
 // Buttons and menu items inside the component's elements, like a dialog's
 // Cancel and Delete or a menu's Remove, visible, not inert and not inside
 // `data-agent-hidden`.
 function buttonsOf(parts: Bound[]) {
-  const found = new Set<HTMLElement>()
-  for (const part of parts) {
-    for (const el of part.el.querySelectorAll<HTMLElement>(
+  const inside = parts.flatMap((part) => [
+    ...part.el.querySelectorAll<HTMLElement>(
       "button, [role=button], [role^=menuitem]"
-    )) {
-      if (
-        el.checkVisibility?.() !== false &&
-        !el.closest("[inert], [data-agent-hidden]")
-      ) {
-        found.add(el)
-      }
-    }
-  }
-  return [...found]
+    ),
+  ])
+  return [...new Set([...toastButtons(parts), ...inside])].filter(
+    (el) =>
+      el.checkVisibility?.() !== false &&
+      !el.closest("[inert], [data-agent-hidden]")
+  )
 }
 
 const rootOf = (parts: Bound[]) =>
@@ -594,9 +600,11 @@ function describe(entry: Entry, instance: PrimitiveInstance, parts: Bound[]) {
   if (confirm) {
     out.confirm = confirm
   }
-  // An open popup's buttons, and a toolbar's, which are on the page whenever it is.
+  // An open popup's buttons, and a toolbar's or a toast's, which are on the page whenever it is.
   const buttons =
-    state.open === true || parts.some((part) => part.slot === "button")
+    state.open === true ||
+    parts.some((part) => part.slot === "button") ||
+    toastButtons(parts).length
       ? buttonsOf(parts).map(textOrName)
       : []
   if (buttons.length) {

@@ -29,7 +29,10 @@ import { separator } from "../src/components/separator/separator"
 import { slider } from "../src/components/slider/slider"
 import { tabs } from "../src/components/tabs/tabs"
 import { tokenInput } from "../src/components/token-input/token-input"
+import { toastRegion } from "../src/components/toast/toast"
+import { createToaster } from "../src/components/toast/toaster"
 import { toolbar } from "../src/components/toolbar/toolbar"
+import { createOverlays } from "../src/page/overlays/overlays"
 import { tree } from "../src/components/tree/tree"
 import { triggerMenu } from "../src/components/trigger-menu/trigger-menu"
 
@@ -415,6 +418,64 @@ describe("agent", () => {
     unbind()
     instance.destroy()
     expect(password()).toEqual([])
+  })
+
+  test("a toast's action and close are pressed by their text, a link action too", async () => {
+    // jsdom has neither, and a toast measures itself as it binds.
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe() {}
+        disconnect() {}
+      }
+    )
+    Element.prototype.getAnimations ??= () => []
+    cleanups.push(() => vi.unstubAllGlobals())
+    const agent = createAgent()
+    const toaster = createToaster({ overlays: createOverlays() })
+    const region = toastRegion({ id: "toasts", toaster })
+    cleanups.push(region.api.internal.connect(), () => region.destroy())
+    const undone: string[] = []
+    // Shows a toast, presses one of its buttons by text, and takes it off the page.
+    async function pressed(title: string, text: string, href?: string) {
+      const id = toaster(title, { duration: Infinity })
+      const root = document.body.appendChild(document.createElement("div"))
+      const unbinds = [bind(region.part("root", { id }), root)]
+      for (const slot of ["action", "close"] as const) {
+        const link = slot === "action" && href
+        const el = root.appendChild(
+          document.createElement(link ? "a" : "button")
+        )
+        el.textContent = slot === "action" ? "Undo" : "Dismiss"
+        if (link) {
+          el.setAttribute("href", href)
+        }
+        const part = region.part(slot, {
+          id: `${id}-${slot}`,
+          toast: id,
+          ...(slot === "action" && { onAction: () => undone.push(title) }),
+        })
+        unbinds.push(bind(part, el))
+      }
+      const seen = agent.snapshot().find((found) => found.component === "toast")
+      await agent.act({
+        steps: [{ ref: "toast", action: "press", args: [text] }],
+      })
+      unbinds.forEach((unbind) => unbind())
+      root.remove()
+      return seen
+    }
+    expect(await pressed("Deleted", "Undo")).toMatchObject({
+      buttons: ["Undo", "Dismiss"],
+      actions: ["pause", "press"],
+    })
+    expect(await pressed("Archived", "Undo", "#archive")).toMatchObject({
+      buttons: ["Undo", "Dismiss"],
+    })
+    expect(undone).toEqual(["Deleted", "Archived"])
+    await pressed("Saved", "Dismiss")
+    expect(undone).toEqual(["Deleted", "Archived"])
+    expect(toaster.toasts()).toEqual([])
   })
 
   test("a toolbar's buttons are pressed by their text", async () => {
