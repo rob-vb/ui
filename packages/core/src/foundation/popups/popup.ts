@@ -697,7 +697,11 @@ function createPopupLayer<
         complete(false, closed)
       })
     })
-    stopExit = () => stops.forEach((stop) => stop())
+    // An exit with nothing to animate has finished: a cleanup kept for it
+    // would hold the closed content until the next open.
+    if (left > 0) {
+      stopExit = () => stops.forEach((stop) => stop())
+    }
     releaseInert?.()
     releaseInert = undefined
     releaseWatcher?.()
