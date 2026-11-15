@@ -543,12 +543,16 @@ function createPointerDriver(options: SheetDriverOptions) {
   }
 
   function onPointerUp(event: PointerEvent) {
-    if (event.pointerId === pointerId) {
-      release(
-        event,
-        event.type === "pointercancel" ? 0 : tracker.velocity(event.timeStamp)
-      )
+    if (event.pointerId !== pointerId) {
+      return
     }
+    if (press && isDragPress(press)) {
+      return release(event, 0, caught)
+    }
+    release(
+      event,
+      event.type === "pointercancel" ? 0 : tracker.velocity(event.timeStamp)
+    )
   }
 
   // `resume` is the snap point a settle was heading to when the press caught

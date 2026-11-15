@@ -128,22 +128,30 @@ test("a press that a drag inside follows, like a slider's, doesn't drag the shee
   expect(drags).toContain(true)
 })
 
-test("a drag inside that starts while the sheet settles open leaves it opening", () => {
-  const { sheet, rests, calls } = setup(createPointerDriver)
-  const track = sheet.appendChild(document.createElement("div"))
-  const handle = (event: PointerEvent) =>
-    bindDrag(track, event, { onMove() {}, onEnd() {} })
-  document.addEventListener("pointerdown", handle)
-  driver!.open("full", true)
-  // jsdom stamps events on another clock than the settle's.
-  const now = (event: PointerEvent) =>
-    Object.defineProperty(event, "timeStamp", { value: performance.now() })
-  track.dispatchEvent(now(pointer("pointerdown", 100)))
-  document.dispatchEvent(now(pointer("pointermove", 90)))
-  document.dispatchEvent(now(pointer("pointerup", 90)))
-  document.removeEventListener("pointerdown", handle)
-  finishLast()
-  expect(calls.dismiss).toBe(0)
-  expect(rests.at(-1)).toBe("full")
-  expect(driver!.target()).toBe("full")
-})
+test.each([
+  ["a move", [90]],
+  ["no move", []],
+])(
+  "a press on a drag inside while the sheet settles open leaves it opening, after %s",
+  (_, moves) => {
+    const { sheet, rests, calls } = setup(createPointerDriver)
+    const track = sheet.appendChild(document.createElement("div"))
+    const handle = (event: PointerEvent) =>
+      bindDrag(track, event, { onMove() {}, onEnd() {} })
+    document.addEventListener("pointerdown", handle)
+    driver!.open("full", true)
+    // jsdom stamps events on another clock than the settle's.
+    const now = (event: PointerEvent) =>
+      Object.defineProperty(event, "timeStamp", { value: performance.now() })
+    track.dispatchEvent(now(pointer("pointerdown", 100)))
+    for (const y of moves) {
+      document.dispatchEvent(now(pointer("pointermove", y)))
+    }
+    document.dispatchEvent(now(pointer("pointerup", moves.at(-1) ?? 100)))
+    document.removeEventListener("pointerdown", handle)
+    finishLast()
+    expect(calls.dismiss).toBe(0)
+    expect(rests.at(-1)).toBe("full")
+    expect(driver!.target()).toBe("full")
+  }
+)
