@@ -91,8 +91,16 @@ function createPresentation<Default extends string>(
       }
       let cleanup: (() => void) | undefined
       let cancelled = false
-      const show = (present: () => (() => void) | undefined) =>
-        cancelled || (cleanup = present())
+      // Content in the page before it opens loses `hidden` to the render that
+      // opens it, and would sit in the page's flow until the sheet code loads.
+      const hide = () => el.hidden || (el.hidden = true)
+      const hidden = new MutationObserver(hide)
+      const show = (present: () => (() => void) | undefined) => {
+        hidden.disconnect()
+        if (!cancelled) {
+          cleanup = present()
+        }
+      }
       load().then(
         ({ presentSheet }) =>
           show(() =>
@@ -100,10 +108,12 @@ function createPresentation<Default extends string>(
           ),
         () => show(() => popup.bind(el, config))
       )
-      el.hidden = true
+      hide()
+      hidden.observe(el, { attributeFilter: ["hidden"] })
       const unregister = registerPopupElement(el)
       return () => {
         cancelled = true
+        hidden.disconnect()
         unregister()
         cleanup?.()
       }
