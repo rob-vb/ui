@@ -16,14 +16,17 @@ const pendingResets = new WeakMap<HTMLElement, () => void>()
 function animateIn(el: HTMLElement, done?: () => void) {
   pendingResets.get(el)?.()
   // An element already shown would transition to its starting style and back,
-  // so it jumps there, unless a transition is under way. jsdom has no getAnimations.
-  const settled = el
-    .getAnimations?.()
-    .every((animation) => !isTransition(animation))
+  // so it jumps there with what's inside it, like an icon's path. Anything
+  // already moving eases back instead. jsdom has no getAnimations.
+  const running = el.getAnimations?.({ subtree: true }).filter(isTransition)
+  const settled = running?.every((animation) => targetOf(animation) !== el)
   el.setAttribute("data-starting-style", "")
-  if (settled) {
-    for (const animation of el.getAnimations()) {
-      if (isTransition(animation)) {
+  if (running && settled) {
+    for (const animation of el.getAnimations({ subtree: true })) {
+      if (
+        isTransition(animation) &&
+        !running.some((moving) => continues(animation, moving))
+      ) {
         animation.finish()
       }
     }
@@ -47,7 +50,15 @@ function animateIn(el: HTMLElement, done?: () => void) {
   }
 }
 
-const isTransition = (animation: Animation) => "transitionProperty" in animation
+const isTransition = (animation: Animation): animation is CSSTransition =>
+  "transitionProperty" in animation
+
+const targetOf = (animation: Animation) =>
+  (animation.effect as KeyframeEffect | null)?.target
+
+const continues = (animation: CSSTransition, moving: CSSTransition) =>
+  targetOf(animation) === targetOf(moving) &&
+  animation.transitionProperty === moving.transitionProperty
 
 function seconds(value: string) {
   return value.split(",").map((part) => {
