@@ -12,6 +12,7 @@ import { listbox } from "../src/components/listbox/listbox-root"
 import { menu } from "../src/components/menu/menu"
 import { popover } from "../src/components/popover/popover"
 import { radioGroup } from "../src/components/radio/radio"
+import { select } from "../src/components/select/select"
 import { slider } from "../src/components/slider/slider"
 import { switchPrimitive } from "../src/components/switch/switch"
 import { tabs } from "../src/components/tabs/tabs"
@@ -103,6 +104,26 @@ describe("our primitives pass", () => {
     )
     await checkPattern(listView.root, "listbox")
     expect(listView.state.value).toEqual(["cherry"])
+  })
+
+  test("the open list of a select, which its trigger owns", async () => {
+    const selectView = view(
+      mount(
+        select,
+        { defaultValue: "banana", defaultOpen: true },
+        `<root>
+          <trigger aria-label="Fruit"><value></value></trigger>
+          <content>
+            <item value="apple">Apple</item>
+            <item value="banana">Banana</item>
+            <item value="cherry">Cherry</item>
+          </content>
+        </root>`
+      )
+    )
+    await checkPattern(selectView.part("content")!, "listbox")
+    expect(selectView.state.value).toBe("banana")
+    expect(selectView.state.open).toBe(true)
   })
 
   test("menu", async () => {

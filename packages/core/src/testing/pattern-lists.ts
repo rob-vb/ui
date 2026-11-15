@@ -31,6 +31,7 @@ import {
   orientationOf,
   popupOf,
   requireName,
+  triggerOf,
   type PatternContext,
 } from "./pattern-context"
 import { isDisabledElement } from "../foundation/forms/form"
@@ -91,7 +92,11 @@ async function listbox(context: PatternContext) {
     source: "listbox",
   }
   const arrows = arrowsFor(orientationOf(context, box), isRtl(box))
-  checkTabStop(context, composite)
+  // A combobox's popup is reached from the combobox, which is the tab stop,
+  // and choosing an option there closes it.
+  const owner = triggerOf(box)
+  const popup = !!owner && roleOf(owner) === "combobox"
+  checkTabStop(context, composite, !popup)
   if (options.length < 2) {
     return
   }
@@ -103,7 +108,7 @@ async function listbox(context: PatternContext) {
   })
   const readOnly =
     box.getAttribute("aria-readonly") === "true" || isDisabledElement(box)
-  if (!readOnly) {
+  if (!readOnly && (multiple || !popup)) {
     await checkSpaceSelects(context, composite, arrows, multiple)
   }
   await checkTypeahead(context, composite, arrows)
