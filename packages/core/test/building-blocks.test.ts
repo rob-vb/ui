@@ -487,6 +487,30 @@ describe("createSelection", () => {
     expect(value()).toEqual(["c", "e"])
   })
 
+  test("a controlled value that comes back in another order keeps the anchor", async () => {
+    let chosen: string[] = []
+    const { selection, instance } = await setup()
+    // The owner keeps its own order, and hands over a new array on every render.
+    const render = () =>
+      instance.setOptions({
+        id: "l",
+        multiple: true,
+        value: [...chosen].sort().reverse(),
+        onValueChange: (next: string[]) => (chosen = next),
+      })
+    render()
+    selection.toggle("a", why)
+    render()
+    selection.toggle("b", why)
+    render()
+    expect(instance.get().value).toEqual(["b", "a"])
+    expect(selection.anchor()).toBe("b")
+    render()
+    expect(selection.anchor()).toBe("b")
+    selection.extend("e", why)
+    expect(chosen).toEqual(["a", "b", "c", "e"])
+  })
+
   test("a value from outside starts ranges over, and a refused change moves no anchor", async () => {
     const onValueChange = vi.fn(
       (_value: string[], details: { cancel: () => void }) => details.cancel()

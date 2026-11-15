@@ -74,6 +74,12 @@ function createKeySelection<Reason extends string>(config: {
   }
 }
 
+// Outside state may hand the same keys back as a new array, or in another order.
+function sameMembers(a: readonly string[], b: readonly string[]) {
+  const members = new Set(b)
+  return a.length === b.length && a.every((key) => members.has(key))
+}
+
 /**
  * How `createSelection` reads and changes a selection.
  * @stable
@@ -157,8 +163,12 @@ function createSelection<
       if (current === previous) {
         return
       }
+      const kept = sameMembers(current, previous)
       previous = current
-      const own = requested !== null && isSameKeys(requested, current)
+      if (kept) {
+        return
+      }
+      const own = requested !== null && sameMembers(requested, current)
       requested = null
       if (!own || !current.length) {
         model.resetAnchor()
