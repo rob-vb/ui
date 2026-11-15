@@ -3,11 +3,14 @@ import { checkName } from "#name-check"
 import { bindHold } from "../../foundation/direct-manipulation/hold"
 import { isPromise } from "../../foundation/kernel/action"
 import { keyWhileBound } from "../../foundation/kernel/bound-keys"
-import { opensElsewhere } from "../../foundation/platform/button"
+import {
+  buttonElement,
+  buttonElementAttrs,
+  opensElsewhere,
+} from "../../foundation/platform/button"
 import { isRTL } from "../../foundation/platform/env"
 import { ariaKeyshortcuts } from "../../foundation/platform/platform"
 import {
-  disabledTriggerAttrs,
   popupContentAttrs,
   popupTriggerAttrs,
 } from "../../foundation/popups/popup"
@@ -67,6 +70,9 @@ const namedByTrigger = (state: MenuState, nested: boolean) =>
     ? state.triggers.length > 0
     : state.triggers.includes(state.trigger))
 
+const triggerElement = (state: MenuState, key: string) =>
+  state.triggerElements[key] ?? "button"
+
 // The menu's slots, which its features' slots join.
 const menuSlots = (slot: SlotFactory<MenuState, MenuApi>) => ({
   trigger: slot<TriggerProps, MenuTriggerState>({
@@ -77,11 +83,16 @@ const menuSlots = (slot: SlotFactory<MenuState, MenuApi>) => ({
       payload: "value",
       shortcut: "string",
     },
-    selects: selects({ values: [] }),
-    // A submenu's trigger is an item of its parent menu, and a menubar's an item of the menubar.
-    role: (state, { api }) =>
-      api.root() !== api || api.menubar() ? "menuitem" : undefined,
-    roles: ["menuitem"],
+    selects: selects({ values: [], triggerElements: ({ key }) => [key] }),
+    // A submenu's trigger is an item of its parent menu, and a menubar's an item
+    // of the menubar. Any other is a button, whatever it's rendered as.
+    role: (state, { api, key }) => {
+      if (api.root() !== api || api.menubar()) {
+        return "menuitem"
+      }
+      return triggerElement(state, key) === "other" ? "button" : undefined
+    },
+    roles: ["menuitem", "button"],
     focus: "roving",
     state: (state, { api, key, props }) => ({
       open:
@@ -117,8 +128,12 @@ const menuSlots = (slot: SlotFactory<MenuState, MenuApi>) => ({
       }
       return {
         ...popupTriggerAttrs(state, id, "menu", key),
-        type: "button",
-        ...disabledTriggerAttrs(props),
+        ...buttonElementAttrs(triggerElement(state, key), {
+          type: "button",
+          disabled: !!props.disabled,
+          focusable: !!props.focusableWhenDisabled,
+        }),
+        "data-disabled": props.disabled ? "" : undefined,
         "aria-keyshortcuts": props.shortcut
           ? ariaKeyshortcuts(props.shortcut, state.apple)
           : undefined,
@@ -271,6 +286,16 @@ const menuSlots = (slot: SlotFactory<MenuState, MenuApi>) => ({
         cleanups.push(keyWhileBound(store, "triggers", key))
       }
       const menubar = api.menubar()
+      const element = buttonElement(el)
+      if (
+        !parentMenu &&
+        !menubar &&
+        triggerElement(store.get(), key) !== element
+      ) {
+        store.set({
+          triggerElements: { ...store.get().triggerElements, [key]: element },
+        })
+      }
       if (menubar) {
         const latest = () => api.itemProps<TriggerProps>("trigger", key) ?? {}
         // The menubar's tab stop and disabled state render on this trigger.

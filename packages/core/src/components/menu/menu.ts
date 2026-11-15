@@ -495,6 +495,7 @@ const menuPrimitive = /* @__PURE__ */ definePrimitive({
     barDisabled: !options.parent && !!options.menubar?.()?.internal.disabled(),
     groupLabels: [],
     triggers: [],
+    triggerElements: {},
     shortcutItems: undefined,
     pending: [],
     error: null,

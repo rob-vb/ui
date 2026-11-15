@@ -1,5 +1,6 @@
 import { type Layer } from "../../foundation/platform/layers"
 import type { MenubarApi } from "../menubar/menubar"
+import type { ButtonElement } from "../../foundation/platform/button"
 import { isRTL } from "../../foundation/platform/env"
 import {
   activeElement,
@@ -1253,6 +1254,8 @@ type MenuState = {
   groupLabels: readonly string[]
   // The button triggers in the page, so the content is named only by one that exists.
   triggers: readonly string[]
+  // What each trigger that isn't a native button is rendered as, by key.
+  triggerElements: Record<string, ButtonElement>
   // A data menu's items while `itemShortcuts` is on, so triggers register their shortcuts again when they change.
   shortcutItems: MenuData | undefined
   // Items whose `onSelect` or `onAction` Promise hasn't settled, and the last one that failed.
