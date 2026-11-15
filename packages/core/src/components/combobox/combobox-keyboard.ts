@@ -12,6 +12,7 @@ import { isApple } from "../../foundation/platform/platform"
 import { listKeyDown, listStep } from "../../foundation/lists/listbox-keyboard"
 import { type ListEntry, type Listbox } from "../../foundation/lists/listbox"
 import { type PopupOpener } from "../../foundation/popups/popup"
+import { isComposing } from "../../foundation/kernel/events"
 import type { Store } from "../../foundation/kernel/store"
 import { type ValueSelection } from "../../foundation/lists/listbox-value"
 
@@ -75,11 +76,15 @@ function createComboboxKeyboard({
       return moveHighlight(event, step, open)
     }
     switch (event.key) {
-      case "Enter":
-        if (open) {
+      case "Enter": {
+        // Chips with no suggestions may keep the list closed, and Enter still adds the text.
+        const { multiple, query } = store.get()
+        const adds = multiple && allowCustomValue() && !!query.trim()
+        if (open || (adds && !isComposing(event))) {
           onEnter(event)
         }
         return
+      }
       case "Tab":
         if (open) {
           hide({ reason: "focus-out", event })
