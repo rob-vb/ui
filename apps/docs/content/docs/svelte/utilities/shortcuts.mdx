@@ -37,7 +37,7 @@ Call the helper in the component's script. It unregisters when the component goe
 
 Its fields are reactive getters. Read `hint.text` and `hint.ariaKeyshortcuts` in markup.
 
-Outside rendering, use `formatShortcut` for display text or `ariaKeyshortcuts` for the ARIA value, from the same entry.
+Outside rendering, use `formatShortcut` for display text or `ariaKeyshortcuts` for the ARIA value, from the same entry. The hint's text and `formatShortcut` both keep their left-to-right order on a right-to-left page, because two invisible characters wrap the text. Compare the original keys, not the formatted hint.
 
 ## While Someone Is Typing
 

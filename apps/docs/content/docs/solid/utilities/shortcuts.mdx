@@ -42,7 +42,7 @@ Call the helper inside a component. It unregisters when the component goes away.
 
 Its fields are accessors. Call `hint.text()` and `hint.ariaKeyshortcuts()` in JSX.
 
-Outside rendering, use `formatShortcut` for display text or `ariaKeyshortcuts` for the ARIA value, from the same entry.
+Outside rendering, use `formatShortcut` for display text or `ariaKeyshortcuts` for the ARIA value, from the same entry. The hint's text and `formatShortcut` both keep their left-to-right order on a right-to-left page, because two invisible characters wrap the text. Compare the original keys, not the formatted hint.
 
 ## While Someone Is Typing
 

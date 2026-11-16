@@ -40,7 +40,7 @@ Call the helper in setup. It unregisters when the component goes away. Keys and 
 
 Its fields are computed refs. The example destructures them so the template unwraps them automatically.
 
-Outside rendering, use `formatShortcut` for display text or `ariaKeyshortcuts` for the ARIA value, from the same entry.
+Outside rendering, use `formatShortcut` for display text or `ariaKeyshortcuts` for the ARIA value, from the same entry. The hint's text and `formatShortcut` both keep their left-to-right order on a right-to-left page, because two invisible characters wrap the text. Compare the original keys, not the formatted hint.
 
 ## While Someone Is Typing
 

@@ -58,7 +58,7 @@ export { SaveButton }
 
 This shows `⌘S` on Apple platforms and `Ctrl+S` elsewhere. The hook keeps the server and first client render consistent, then updates after mount.
 
-Outside rendering, use `formatShortcut` for display text or `ariaKeyshortcuts` for the ARIA value. Both are exported from the same entry. Compare the original keys, not the formatted hint.
+Outside rendering, use `formatShortcut` for display text or `ariaKeyshortcuts` for the ARIA value. Both are exported from the same entry. The hint's text and `formatShortcut` both keep their left-to-right order on a right-to-left page, because two invisible characters wrap the text. Compare the original keys, not the formatted hint.
 
 ## While Someone Is Typing
 

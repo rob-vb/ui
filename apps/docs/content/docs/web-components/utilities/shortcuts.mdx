@@ -49,7 +49,7 @@ Call `disconnect()` when removing this view. `registerShortcut` returns the func
 
 `formatShortcut` produces display text for the current platform. `ariaKeyshortcuts` produces the matching `aria-keyshortcuts` value. The example hides the visual hint from screen readers because the button already exposes the shortcut.
 
-Format browser-specific hints after the page loads. Compare the original keys, not the formatted display text.
+Format browser-specific hints after the page loads. The text keeps its left-to-right order on a right-to-left page, because two invisible characters wrap it. Compare the original keys, not the formatted display text.
 
 ## While Someone Is Typing
 

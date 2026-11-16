@@ -58,7 +58,8 @@ function useShortcut(
  * Keys formatted for this platform, like `⌘S` on Apple platforms and `Ctrl+S`
  * elsewhere, with the matching `aria-keyshortcuts`, as computed refs. The
  * server and the first client render use the same platform, so hydration
- * matches, and they update after mount. Keys can be a ref or a getter.
+ * matches, and they update after mount. Keys can be a ref or a getter. The
+ * text is wrapped in a left-to-right isolate, like `formatShortcut`'s.
  * @stable
  */
 function useShortcutHint(keys: MaybeRefOrGetter<string>) {

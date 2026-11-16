@@ -70,7 +70,8 @@ function useShortcut(
  * elsewhere, with the matching `aria-keyshortcuts`. The server and the first
  * client render use the same platform, so hydration matches, and it updates
  * after mount. Calling `formatShortcut` during render instead differs between
- * the server and a Mac.
+ * the server and a Mac. The text is wrapped in a left-to-right isolate, like
+ * `formatShortcut`'s.
  * @stable
  */
 function useShortcutHint(keys: string) {

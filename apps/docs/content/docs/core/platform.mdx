@@ -105,7 +105,7 @@ Try the shortcut while typing in the note:
 
 <ComponentExample name="core/bold-shortcut" />
 
-`formatShortcut` keeps the label in left-to-right order, even on a right-to-left page. For tests, import `setPlatform` from `@ui-sdk/core/testing` and call `setPlatform("apple")` or `setPlatform("other")`.
+`formatShortcut` keeps the label in left-to-right order, even on a right-to-left page, by wrapping it in two invisible characters. For tests, import `setPlatform` from `@ui-sdk/core/testing` and call `setPlatform("apple")` or `setPlatform("other")`.
 
 ## Layers and Positioning
 
