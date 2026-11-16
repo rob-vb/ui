@@ -128,12 +128,13 @@ function createComboboxKeyboard({
     show({ event, by: "keyboard" })
   }
 
-  // Enter in the open list: the highlighted item, else an item whose label
-  // is the text, else the create option, else the text itself with `allowCustomValue`.
+  // Enter: the item highlighted in the open list, else an item whose label is
+  // the text, else the create option, else the text itself with `allowCustomValue`.
   function onEnter(event: KeyboardEvent) {
-    const { highlighted, query, multiple } = store.get()
+    const { highlighted, query, multiple, open } = store.get()
     event.preventDefault()
-    if (highlighted !== null) {
+    // In a list kept closed, `autoHighlight` highlights an item nobody saw.
+    if (open && highlighted !== null) {
       const el = listbox.element(highlighted)
       // Links follow themselves, so routers and modifier keys work.
       if (el?.matches("a[href]")) {

@@ -50,3 +50,25 @@ test("Enter in an empty closed chip field is left to the form", async () => {
   expect(enter(input).defaultPrevented).toBe(false)
   view.unmount()
 })
+
+test("Enter adds the typed text, not a suggestion nobody saw, while the list is kept closed", async () => {
+  const view = mount(
+    combobox,
+    {
+      multiple: true,
+      allowCustomValue: true,
+      autoHighlight: true,
+      items: ["alpha", "alps"],
+      defaultValue: [],
+      onOpenChange: (open, details) => open && details.cancel(),
+    },
+    markup
+  )
+  const input = view.part("input") as HTMLInputElement
+  input.focus()
+  await view.type("al")
+  expect(view.state.open).toBe(false)
+  enter(input)
+  expect(view.api.getValue()).toEqual(["al"])
+  view.unmount()
+})
