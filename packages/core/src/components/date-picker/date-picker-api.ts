@@ -157,7 +157,27 @@ function datePickerApiBody(
     },
   })
   const { setValue, setMonth, reveal } = calendar.internal
-  let latest: string | undefined
+
+  function showValue() {
+    const [first] = selectedDates(store.get().value)
+    if (first) {
+      reveal(first, "imperative")
+    }
+  }
+
+  let awaited = false
+  let last = store.get().value
+  store.subscribe(() => {
+    const { value } = store.get()
+    if (value === last) {
+      return
+    }
+    last = value
+    if (awaited) {
+      awaited = false
+      showValue()
+    }
+  })
 
   // The trigger, or without one, the input that holds the start.
   const triggerElement = () =>
@@ -356,24 +376,17 @@ function datePickerApiBody(
         return false
       }
       store.set({ anchor: null, hover: null })
-      const asked = normalizeValue(store.get().mode, value)
-      const key = (latest = valueKey(asked))
       const before = store.get().value
       const result = setValue(value, reason, event)
-      // Another value `onValueChange` set in reply has turned the calendar already.
-      if (latest !== key) {
-        return result
-      }
       // The calendar turns to a date set from code, as it does to a typed one:
-      // to the value now held, or to the one asked for while a controlled
-      // value is still on its way.
+      // to the value now held, or for a controlled one, to the value its
+      // owner passes back.
       const held = store.get().value
-      const [first] = selectedDates(held === before ? asked : held)
-      if (
-        first &&
-        (held !== before || result || valueKey(held) === valueKey(asked))
-      ) {
-        reveal(first, "imperative")
+      const asked = normalizeValue(store.get().mode, value)
+      if (held !== before || valueKey(held) === valueKey(asked)) {
+        showValue()
+      } else if (result && context.options().value !== undefined) {
+        awaited = true
       }
       return result
     },

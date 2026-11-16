@@ -231,16 +231,44 @@ describe("datePicker", () => {
     expect(picker.input().hasAttribute("aria-invalid")).toBe(false)
   })
 
-  test("a value set from code turns the calendar to it, controlled or not", () => {
-    for (const options of [
-      { defaultValue: "2026-11-14" },
-      { value: "2026-11-14", onValueChange: vi.fn() },
-    ]) {
-      const controller = createDatePickerController()
-      const picker = mount({ controller, ...options })
-      expect(controller.setValue("2026-12-25")).toBe(true)
-      expect(picker.instance.get().month).toBe("2026-12")
+  // A controlled picker whose owner passes a value back with `pass`, as a framework does after it renders.
+  function controlled(onValueChange?: (value: string) => void) {
+    const controller = createDatePickerController()
+    const options: DatePickerOptions = {
+      today: "2026-10-16",
+      controller,
+      value: "2026-11-14",
+      onValueChange: (value) => onValueChange?.(value as string),
     }
+    const picker = mount(options)
+    const pass = (value: string) =>
+      picker.instance.setOptions({ id: "d", ...options, value })
+    return { controller, pass, month: () => picker.instance.get().month }
+  }
+
+  test("a value set from code turns the calendar to it", () => {
+    const controller = createDatePickerController()
+    const picker = mount({ controller, defaultValue: "2026-11-14" })
+    expect(controller.setValue("2026-12-25")).toBe(true)
+    expect(picker.instance.get().month).toBe("2026-12")
+  })
+
+  test("a controlled value set from code turns the calendar once its owner passes it back", () => {
+    const { controller, pass, month } = controlled()
+    expect(controller.setValue("2026-12-25")).toBe(true)
+    pass("2026-12-25")
+    expect(month()).toBe("2026-12")
+  })
+
+  test("a controlled value its owner turns down or replaces takes the calendar with it", () => {
+    const kept = controlled()
+    kept.controller.setValue("2026-12-25")
+    kept.pass("2026-11-14")
+    expect(kept.month()).toBe("2026-11")
+    const replaced = controlled()
+    replaced.controller.setValue("2026-12-25")
+    replaced.pass("2027-03-01")
+    expect(replaced.month()).toBe("2027-03")
   })
 
   test("a value onValueChange replaced turns the calendar to what it kept", () => {
@@ -260,46 +288,55 @@ describe("datePicker", () => {
   })
 
   test("a value onValueChange put back leaves the calendar on it", () => {
-    for (const options of [
-      { defaultValue: "2026-11-14" },
-      { value: "2026-11-14" },
-    ]) {
-      const controller = createDatePickerController()
-      const picker = mount({
-        controller,
-        ...options,
-        onValueChange(value) {
-          if (value === "2026-12-25") {
-            controller.setValue("2026-11-14")
-          }
-        },
-      })
-      controller.setValue("2026-12-25")
-      expect(picker.instance.get().value).toBe("2026-11-14")
-      expect(picker.instance.get().month).toBe("2026-11")
-    }
+    const controller = createDatePickerController()
+    const picker = mount({
+      controller,
+      defaultValue: "2026-11-14",
+      onValueChange(value) {
+        if (value === "2026-12-25") {
+          controller.setValue("2026-11-14")
+        }
+      },
+    })
+    controller.setValue("2026-12-25")
+    expect(picker.instance.get().value).toBe("2026-11-14")
+    expect(picker.instance.get().month).toBe("2026-11")
   })
 
   test("a value onValueChange echoes still turns the calendar to it", () => {
-    for (const options of [
-      { defaultValue: "2026-11-14" },
-      { value: "2026-11-14" },
-    ]) {
-      const controller = createDatePickerController()
-      let echoed = false
-      const picker = mount({
-        controller,
-        ...options,
-        onValueChange(value) {
-          if (!echoed) {
-            echoed = true
-            controller.setValue(value as string)
-          }
-        },
-      })
-      controller.setValue("2026-12-25")
-      expect(picker.instance.get().month).toBe("2026-12")
-    }
+    const controller = createDatePickerController()
+    let echoed = false
+    const picker = mount({
+      controller,
+      defaultValue: "2026-11-14",
+      onValueChange(value) {
+        if (!echoed) {
+          echoed = true
+          controller.setValue(value as string)
+        }
+      },
+    })
+    controller.setValue("2026-12-25")
+    expect(picker.instance.get().month).toBe("2026-12")
+  })
+
+  test("the calendar follows the value a binding writes, whatever onValueChange asked for", () => {
+    const bound = controlled((value) => {
+      if (value === "2026-12-25") {
+        bound.controller.setValue("2026-11-14")
+      }
+    })
+    bound.controller.setValue("2026-12-25")
+    bound.pass("2026-12-25")
+    expect(bound.month()).toBe("2026-12")
+    const redirected = controlled((value) => {
+      if (value === "2026-12-26") {
+        redirected.controller.setValue("2027-01-04")
+      }
+    })
+    redirected.controller.setValue("2026-12-26")
+    redirected.pass("2026-12-26")
+    expect(redirected.month()).toBe("2026-12")
   })
 
   test("clearing the text clears the value", async () => {
