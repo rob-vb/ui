@@ -34,6 +34,7 @@ import {
   stackLayout,
   swipeDirections,
   watchAttention,
+  writeHeight,
 } from "./toast-dom"
 import { createToastTimers, type ToastPauseReason } from "./toast-timers"
 import {
@@ -322,9 +323,9 @@ function toastRegionApiBody(
     )
     // Kept until a new front toast is measured, so the toasts behind it don't collapse for a frame.
     if (stack.front !== undefined) {
-      region.style.setProperty("--toast-front-height", `${stack.front}px`)
+      writeHeight(region, "--toast-front-height", stack.front)
     }
-    region.style.setProperty("--toast-stack-height", `${stack.total}px`)
+    writeHeight(region, "--toast-stack-height", stack.total)
     region.style.setProperty("--toast-count", String(stack.layout.size))
     for (const [toastId, place] of stack.layout) {
       const el = element("root", toastId)
@@ -332,10 +333,10 @@ function toastRegionApiBody(
         continue
       }
       el.style.setProperty("--toast-index", String(place.index))
-      el.style.setProperty("--toast-offset", `${place.offset}px`)
+      writeHeight(el, "--toast-offset", place.offset)
       const height = heights.get(toastId)
       if (height !== undefined) {
-        el.style.setProperty("--toast-height", `${height}px`)
+        writeHeight(el, "--toast-height", height)
       }
     }
   }

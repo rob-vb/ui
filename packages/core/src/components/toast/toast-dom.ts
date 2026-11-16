@@ -96,6 +96,19 @@ function naturalHeight(el: HTMLElement) {
 }
 
 /**
+ * Writes a height as a pixel variable. A toast with no layout, like one under
+ * a hidden ancestor, has no height to measure, so its variables stay unset and
+ * the page's own styles apply until it's laid out.
+ */
+function writeHeight(el: HTMLElement, name: string, height: number) {
+  if (Number.isNaN(height)) {
+    el.style.removeProperty(name)
+  } else {
+    el.style.setProperty(name, `${height}px`)
+  }
+}
+
+/**
  * Where focus goes when the focused toast closes: the next toast, else the
  * one before it, else back where it was before it entered the region. Never
  * the page's body.
@@ -223,4 +236,5 @@ export {
   stackLayout,
   swipeDirections,
   watchAttention,
+  writeHeight,
 }
