@@ -682,6 +682,25 @@ test("a hand-made dialog that keeps Tab inside and leaves the page usable passes
   await checkPattern(trapTab(root), "dialog")
 })
 
+test("a dialog with no trigger that leaves the page beside it usable passes without aria-modal", async () => {
+  const root = render(`<div>
+    <aside inert>A closed panel</aside>
+    <main>
+      <p>The page</p>
+      <div id="box" role="dialog" aria-label="Box"><button id="one">One</button><button id="two">Two</button></div>
+      <button>After</button>
+    </main>
+  </div>`)
+  const box = root.querySelector<HTMLElement>("#box")!
+  box.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      box.hidden = true
+    }
+  })
+  root.querySelector<HTMLElement>("#one")!.focus()
+  await checkPattern(root, "dialog")
+})
+
 describe("broken markup fails", () => {
   test("a listbox whose arrows don't move past an option its styles hide", async () => {
     const root = render(`
