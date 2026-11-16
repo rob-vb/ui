@@ -1,9 +1,12 @@
 // @vitest-environment jsdom
 // A part whose visibility the primitive controls owns its `hidden`, so one the
 // server wrote goes when the part shows, at upgrade or later.
-import { expect, test } from "vitest"
+import { afterEach, expect, test } from "vitest"
 import { defineCollapsibleElements } from "../src/collapsible"
 import { defineTabsElements } from "../src/tabs"
+
+// A panel still opening when its test ends would finish after the page is gone.
+afterEach(() => document.body.replaceChildren())
 
 const wait = () => new Promise((resolve) => setTimeout(resolve, 10))
 ;(Element.prototype as { getAnimations?: () => Animation[] }).getAnimations ??=
