@@ -1,5 +1,12 @@
 # @ui-sdk/react
 
+## 0.1.0-beta.6
+
+### Patch Changes
+
+- Updated dependencies [0e71042]
+  - @ui-sdk/core@0.1.0-beta.6
+
 ## 0.1.0-beta.5
 
 ### Patch Changes

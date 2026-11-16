@@ -1,5 +1,11 @@
 # @ui-sdk/core
 
+## 0.1.0-beta.6
+
+### Patch Changes
+
+- 0e71042: A NumberInput with a controlled `value` now commits the value that Enter or blur clamped or snapped it to. `onValueCommit` got the value from before, or didn't run.
+
 ## 0.1.0-beta.5
 
 ### Patch Changes
