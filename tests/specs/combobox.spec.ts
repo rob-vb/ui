@@ -329,7 +329,12 @@ test.describe("default value", () => {
   test("typing inside the label keeps the caret where it is", async ({
     page,
     open,
+    fixtureOptions,
   }) => {
+    test.skip(
+      isSheet(fixtureOptions),
+      "Typing opens the sheet, and its own field takes the text and the caret."
+    )
     await open("combobox", { value: "fr" })
     await input(page).focus()
     await input(page).evaluate((el: HTMLInputElement) =>
