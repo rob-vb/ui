@@ -254,12 +254,6 @@ function writeChannel(
     if (value === undefined || !written.has(name)) {
       continue
     }
-    // A text field shows its value property. The attribute is only the default,
-    // and setting it before anyone types replaces the text with the caret at
-    // the start, so the property goes first, as every framework writes it.
-    if (name === "value" && isTextField(el) && el.value !== value) {
-      el.value = value
-    }
     const current =
       name === "id"
         ? id
@@ -269,9 +263,16 @@ function writeChannel(
     if (current !== (previous.get(name) ?? null)) {
       keepFound(el, channel, name, current)
     }
-    if (current !== value) {
-      el.setAttribute(name, value)
+    if (current === value) {
+      continue
     }
+    // A text field shows its value property. The attribute is only the default,
+    // and setting it before anyone types replaces the text with the caret at
+    // the start, so the property goes first, as every framework writes it.
+    if (name === "value" && isTextField(el) && el.value !== value) {
+      el.value = value
+    }
+    el.setAttribute(name, value)
   }
   channels[channel] = written
   applied.set(el, channels)

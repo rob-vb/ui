@@ -325,6 +325,22 @@ test.describe("default value", () => {
     await open("combobox", { value: "fr" })
     await expect(input(page)).toHaveValue("France")
   })
+
+  test("typing inside the label keeps the caret where it is", async ({
+    page,
+    open,
+  }) => {
+    await open("combobox", { value: "fr" })
+    await input(page).focus()
+    await input(page).evaluate((el: HTMLInputElement) =>
+      el.setSelectionRange(1, 1)
+    )
+    await page.keyboard.type("xy")
+    await expect(input(page)).toHaveValue("Fxyrance")
+    expect(
+      await input(page).evaluate((el: HTMLInputElement) => el.selectionStart)
+    ).toBe(3)
+  })
 })
 
 test.describe("multiple", () => {

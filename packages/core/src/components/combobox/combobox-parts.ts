@@ -285,8 +285,10 @@ const comboboxSlots = (slot: SlotFactory<ComboboxState, ComboboxApi>) => ({
       }
       // The DOM property, since an input's value attribute stops applying once someone types.
       const input = el as HTMLInputElement
+      // The first edit after a choice stores `dirty` before the new text. Writing
+      // the old text back in between would move the caret to the end.
       const write = () => {
-        if (input.value !== store.get().query) {
+        if (!api.internal.marking() && input.value !== store.get().query) {
           input.value = store.get().query
         }
       }
