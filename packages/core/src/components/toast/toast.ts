@@ -8,7 +8,12 @@ import type {
   PrimitiveOptions,
 } from "../../foundation/kernel/primitive-types"
 import { toastSlots } from "./toast-parts"
-import { initialToastState, syncToastState, toastRegionApi } from "./toast-api"
+import {
+  hasToasts,
+  initialToastState,
+  syncToastState,
+  toastRegionApi,
+} from "./toast-api"
 import type { Toast, ToastActionDetails, Toaster } from "./toaster"
 
 /**
@@ -138,7 +143,7 @@ const toastRegionPrimitive = /* @__PURE__ */ definePrimitive({
   // Arrow functions, so TypeScript infers the slot names before it checks the api and the parts.
   api: (context) => toastRegionApi(context),
   slots: (slot) => toastSlots(slot),
-  agent: { actions: ["pause"] },
+  agent: { actions: ["pause"], shown: (state) => hasToasts(state.items) },
 })
 
 /**

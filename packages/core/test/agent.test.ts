@@ -11,6 +11,7 @@ import {
   type AgentComponent,
   type AgentStep,
 } from "../src/page/agent/agent"
+import { createOverlays } from "../src/page/overlays/overlays"
 import { button } from "../src/components/button/button"
 import { checkbox } from "../src/components/checkbox/checkbox"
 import { combobox } from "../src/components/combobox/combobox"
@@ -28,6 +29,8 @@ import { select } from "../src/components/select/select"
 import { separator } from "../src/components/separator/separator"
 import { slider } from "../src/components/slider/slider"
 import { tabs } from "../src/components/tabs/tabs"
+import { toastRegion } from "../src/components/toast/toast"
+import { createToaster } from "../src/components/toast/toaster"
 import { tokenInput } from "../src/components/token-input/token-input"
 import { toolbar } from "../src/components/toolbar/toolbar"
 import { tree } from "../src/components/tree/tree"
@@ -2854,6 +2857,20 @@ describe("a primitive's agent key", () => {
     expect(
       agent.snapshot().map((component) => component.component)
     ).not.toContain("separator")
+  })
+
+  test("a toast region is listed only while it holds a toast", () => {
+    const agent = createAgent()
+    const toast = createToaster({ overlays: createOverlays() })
+    const instance = toastRegion({ id: "toasts", toaster: toast })
+    const el = document.createElement("div")
+    document.body.append(el)
+    cleanups.push(bind(instance.part("region"), el), () => instance.destroy())
+    const listed = () =>
+      agent.snapshot().map((component) => component.component)
+    expect(listed()).not.toContain("toast")
+    toast("Saved")
+    expect(listed()).toContain("toast")
   })
 })
 
