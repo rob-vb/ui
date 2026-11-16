@@ -202,7 +202,6 @@ export {
   checkedOf,
   danglingReferences,
   describe,
-  focusable,
   focusables,
   hasBoolean,
   ids,

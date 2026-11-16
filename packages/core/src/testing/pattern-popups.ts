@@ -3,7 +3,6 @@
 // trigger, drives its keys, and opens it again when a key closed it.
 import {
   describe,
-  focusable,
   ids,
   isRtl,
   isUnreachable,
@@ -256,10 +255,11 @@ function isInert(el: Element) {
   return false
 }
 
-// Something to read or use, unlike a backdrop or a focus guard.
-const hasContent = (el: Element) =>
+// The page, or a part of it: inert, or something to read or use, unlike a
+// backdrop or a focus guard.
+const isPage = (el: Element) =>
   !el.matches("script, style, template") &&
-  (!!el.textContent?.trim() || !!el.querySelector(focusable))
+  (isInert(el) || !!el.textContent?.trim() || tabStops(el).length > 0)
 
 // A modal dialog makes the page behind it inert: its trigger, or without one,
 // all the content beside it, or beside the nearest element around it that has
@@ -271,7 +271,7 @@ function isPageInert(popup: Element) {
   }
   for (let node = popup; node.parentElement; node = node.parentElement) {
     const page = [...node.parentElement.children].filter(
-      (el) => el !== node && hasContent(el)
+      (el) => el !== node && isPage(el)
     )
     if (page.length) {
       return page.every((el) => isInert(el))
