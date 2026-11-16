@@ -157,6 +157,7 @@ function datePickerApiBody(
     },
   })
   const { setValue, setMonth, reveal } = calendar.internal
+  let requests = 0
 
   // The trigger, or without one, the input that holds the start.
   const triggerElement = () =>
@@ -355,8 +356,13 @@ function datePickerApiBody(
         return false
       }
       store.set({ anchor: null, hover: null })
+      const request = ++requests
       const before = store.get().value
       const result = setValue(value, reason, event)
+      // A value `onValueChange` set in reply has turned the calendar already.
+      if (request !== requests) {
+        return result
+      }
       // The calendar turns to a date set from code, as it does to a typed one:
       // to the value now held, or to the one asked for while a controlled
       // value is still on its way.

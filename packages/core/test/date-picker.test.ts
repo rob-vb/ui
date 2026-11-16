@@ -259,6 +259,27 @@ describe("datePicker", () => {
     expect(picker.instance.get().month).toBe("2027-01")
   })
 
+  test("a value onValueChange put back leaves the calendar on it", () => {
+    for (const options of [
+      { defaultValue: "2026-11-14" },
+      { value: "2026-11-14" },
+    ]) {
+      const controller = createDatePickerController()
+      const picker = mount({
+        controller,
+        ...options,
+        onValueChange(value) {
+          if (value === "2026-12-25") {
+            controller.setValue("2026-11-14")
+          }
+        },
+      })
+      controller.setValue("2026-12-25")
+      expect(picker.instance.get().value).toBe("2026-11-14")
+      expect(picker.instance.get().month).toBe("2026-11")
+    }
+  })
+
   test("clearing the text clears the value", async () => {
     const picker = mount({ defaultValue: "2026-10-16" })
     await picker.type("")
