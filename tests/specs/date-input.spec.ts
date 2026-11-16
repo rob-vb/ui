@@ -340,7 +340,12 @@ const compose = async (page: import("@playwright/test").Page, text: string) => {
 test("digits committed through an input method fill the segment", async ({
   page,
   open,
+  browserName,
 }) => {
+  test.skip(
+    browserName !== "chromium",
+    "Only Chromium can drive an input method."
+  )
   await open("date-input")
   await segment(page, "month").click()
   await compose(page, "11")
