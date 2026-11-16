@@ -854,6 +854,24 @@ describe("broken markup fails", () => {
     )
   })
 
+  test("a read-only radio group whose arrows clear its radio", async () => {
+    const root =
+      render(`<div role="radiogroup" aria-label="Size" aria-readonly="true">
+      <div role="radio" aria-checked="true" tabindex="0">Small</div>
+      <div role="radio" aria-checked="false" tabindex="-1">Medium</div>
+    </div>`)
+    rove(root, "[role=radio]", {
+      onMove: () => {
+        for (const radio of root.querySelectorAll("[role=radio]")) {
+          radio.setAttribute("aria-checked", "false")
+        }
+      },
+    })
+    await expect(checkPattern(root, "radio-group")).rejects.toThrow(
+      `[role=radio] "Small": ArrowDown unchecked it, but the group's aria-readonly="true" says it can't change`
+    )
+  })
+
   test("a disclosure button with no name", async () => {
     const button = render(
       `<button type="button" aria-expanded="false"></button>`
