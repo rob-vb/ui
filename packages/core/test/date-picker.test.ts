@@ -280,6 +280,28 @@ describe("datePicker", () => {
     }
   })
 
+  test("a value onValueChange echoes still turns the calendar to it", () => {
+    for (const options of [
+      { defaultValue: "2026-11-14" },
+      { value: "2026-11-14" },
+    ]) {
+      const controller = createDatePickerController()
+      let echoed = false
+      const picker = mount({
+        controller,
+        ...options,
+        onValueChange(value) {
+          if (!echoed) {
+            echoed = true
+            controller.setValue(value as string)
+          }
+        },
+      })
+      controller.setValue("2026-12-25")
+      expect(picker.instance.get().month).toBe("2026-12")
+    }
+  })
+
   test("clearing the text clears the value", async () => {
     const picker = mount({ defaultValue: "2026-10-16" })
     await picker.type("")
