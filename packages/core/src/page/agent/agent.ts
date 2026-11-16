@@ -713,7 +713,7 @@ function createAgent(
   // "Username", and "region" finds "Région". Labels and rows are page text, which people other than the
   // user can write, like a display name, so a label that matches exactly doesn't beat another component
   // whose label or row holds the same words: the step is refused with both refs.
-  const find = (ref: string, action?: string) => {
+  const find = (ref: string, action?: string, text?: string) => {
     // `live` first: a component that just came back takes its old ref there.
     const shown = live()
     const byRef = shown.find(({ entry }) => entry.ref === ref)
@@ -759,6 +759,21 @@ function createAgent(
       )
       if (open.length === 1) {
         return open[0]
+      }
+      // A Button and the popups it opens are one button on the page. A press is on the
+      // Button, and a press with the text of a button inside a popup is on that popup.
+      const [own, ...others] = meant.filter(({ parts }) => ownButton(parts))
+      if (action === "press" && own && !others.length) {
+        const el = ownButton(own.parts)!
+        const popups = meant.filter((found) => found !== own)
+        if (popups.every(({ parts }) => soleTrigger(parts) === el)) {
+          if (text === undefined || fold(textOrName(el)) === fold(text)) {
+            return own
+          }
+          if (popups.length === 1) {
+            return popups[0]
+          }
+        }
       }
       if (near.length > 1) {
         throw new Error(
@@ -1091,9 +1106,9 @@ function createAgent(
   }
 
   // Whether `find` names one component now.
-  const shows = (ref: string, action?: string) => {
+  const shows = (ref: string, action?: string, text?: string) => {
     try {
-      find(ref, action)
+      find(ref, action, text)
       return true
     } catch {
       return false
@@ -1104,9 +1119,9 @@ function createAgent(
   // closed accordion section opens in turn and goes back, and the one section
   // that shows the component opens again. A name two sections share, like
   // Deploy failures under Email and under Slack, is refused, not guessed.
-  async function reveal(ref: string, action?: string) {
+  async function reveal(ref: string, action?: string, text?: string) {
     try {
-      return find(ref, action)
+      return find(ref, action, text)
     } catch (missing) {
       const holders: { entry: Entry; open: () => unknown; section: string }[] =
         []
@@ -1141,7 +1156,7 @@ function createAgent(
           const open = () => asAgent(() => api.open!(item.value))
           open()
           await frames()
-          if (shows(ref, action)) {
+          if (shows(ref, action, text)) {
             holders.push({ entry, open, section: item.label })
           }
           asAgent(() => api.setValue!(value))
@@ -1151,7 +1166,7 @@ function createAgent(
       if (holders.length === 1) {
         holders[0].open()
         await frames()
-        return find(ref, action)
+        return find(ref, action, text)
       }
       if (holders.length > 1) {
         const [{ entry, section }] = holders
@@ -1249,7 +1264,11 @@ function createAgent(
     if (typeof action !== "string" || !action) {
       throw new Error(`A step on "${ref}" needs an action, like "press".`)
     }
-    const { entry, instance, parts } = await reveal(ref, action)
+    const { entry, instance, parts } = await reveal(
+      ref,
+      action,
+      action === "press" && typeof args[0] === "string" ? args[0] : undefined
+    )
     const { actions, disabled } = describe(entry, instance, parts)
     // A step is asked about before anything it does, and again when finding
     // its target changed what `allow` would see, like the item a label names

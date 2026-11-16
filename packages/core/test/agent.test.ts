@@ -18,6 +18,7 @@ import { datePicker } from "../src/components/date-picker/date-picker"
 import { dialog } from "../src/components/dialog/dialog"
 import { input, textarea } from "../src/components/input/input"
 import { listbox } from "../src/components/listbox/listbox-root"
+import { menu } from "../src/components/menu/menu"
 import { numberInput } from "../src/components/number-input/number-input"
 import { pagination } from "../src/components/pagination/pagination"
 import { passwordInput } from "../src/components/password-input/password-input"
@@ -30,6 +31,7 @@ import { slider } from "../src/components/slider/slider"
 import { tabs } from "../src/components/tabs/tabs"
 import { tokenInput } from "../src/components/token-input/token-input"
 import { toolbar } from "../src/components/toolbar/toolbar"
+import { tooltip } from "../src/components/tooltip/tooltip"
 import { tree } from "../src/components/tree/tree"
 import { triggerMenu } from "../src/components/trigger-menu/trigger-menu"
 
@@ -2098,6 +2100,54 @@ describe("agent act", () => {
       steps: [{ ref: "Deploy failures", action: "setChecked", args: [true] }],
     })
     expect(outcome.error?.message).toMatch(/names 2 components/)
+  })
+
+  test("a press by label on a Button that opens a tooltip and a menu presses the Button", async () => {
+    const agent = createAgent()
+    const el = document.body.appendChild(document.createElement("button"))
+    el.setAttribute("aria-label", "Account")
+    const clicked = vi.fn()
+    el.addEventListener("click", clicked)
+    const own = button({ id: "account" })
+    const hint = tooltip({ id: "account-hint" })
+    const actions = menu({ id: "account-menu" })
+    cleanups.push(
+      bind(own.part("root"), el),
+      bind(hint.part("trigger"), el),
+      bind(actions.part("trigger"), el),
+      () => [own, hint, actions].forEach((instance) => instance.destroy())
+    )
+    const outcome = await agent.act({
+      steps: [{ ref: "Account", action: "press" }],
+    })
+    expect(outcome.ok, outcome.error?.message).toBe(true)
+    expect(clicked).toHaveBeenCalledTimes(1)
+  })
+
+  test("a press with the text of a button in the dialog a Button opens is on the dialog", async () => {
+    const agent = createAgent()
+    const el = document.body.appendChild(document.createElement("button"))
+    el.textContent = "Delete project"
+    const content = document.body.appendChild(document.createElement("div"))
+    const remove = content.appendChild(document.createElement("button"))
+    remove.textContent = "Delete forever"
+    const clicked = vi.fn()
+    remove.addEventListener("click", clicked)
+    const own = button({ id: "delete" })
+    const confirm = dialog({ id: "delete-dialog" })
+    cleanups.push(
+      bind(own.part("root"), el),
+      bind(confirm.part("trigger"), el),
+      bind(confirm.part("content"), content),
+      () => [own, confirm].forEach((instance) => instance.destroy())
+    )
+    const outcome = await agent.act({
+      steps: [
+        { ref: "Delete project", action: "press", args: ["Delete forever"] },
+      ],
+    })
+    expect(outcome.ok, outcome.error?.message).toBe(true)
+    expect(clicked).toHaveBeenCalledTimes(1)
   })
 
   test("setValue takes an item's label as well as its value", async () => {
