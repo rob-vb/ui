@@ -203,8 +203,7 @@ function CommandItem(
   props: Omit<PartProps<"div", CommandItemState>, Clashing> & CommandItemProps
 ) {
   const generated = createUniqueId()
-  const group = useAround(commandPrimitive, "group")?.().id as
-    string | undefined
+  const group = useAround(commandPrimitive, "group")
   const inPage = useContext(PageContext)
   const data = useContext(DataContext)
   const key = () => props.value ?? generated
@@ -217,7 +216,7 @@ function CommandItem(
     page: props.page,
     index: props.index,
     onSelect: props.onSelect,
-    group,
+    group: group?.().id as string | undefined,
     inPage: inPage?.page,
     data,
   })

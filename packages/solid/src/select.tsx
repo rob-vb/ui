@@ -435,13 +435,13 @@ function SelectItemText(props: PartProps<"span", SelectItemTextState>) {
 function SelectSelectAll(props: PartProps<"div", SelectSelectAllState>) {
   const select = useSelect()
   select.instance.use(selectSelectAll)
-  // Read once, here: the thunk also runs from DOM event handlers, outside any
-  // reactive root, where Solid refuses to look up a context.
-  const group = useAround(selectPrimitive, "group")?.().id as string | undefined
+  // Looked up once, here: the thunk also runs from DOM event handlers, outside
+  // any reactive root, where Solid refuses to look up a context.
+  const group = useAround(selectPrimitive, "group")
   return usePart(
     select,
     "select-all",
-    () => ({ id: selectAllKey(group) }),
+    () => ({ id: selectAllKey(group?.().id as string | undefined) }),
     props,
     "div"
   )

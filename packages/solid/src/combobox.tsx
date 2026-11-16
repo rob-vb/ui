@@ -324,14 +324,13 @@ function ComboboxItemText(props: PartProps<"span", ComboboxItemTextState>) {
 function ComboboxSelectAll(props: PartProps<"div", ComboboxSelectAllState>) {
   const combobox = useCombobox()
   combobox.instance.use(comboboxSelectAll)
-  // Read once, here: the thunk also runs from DOM event handlers, outside any
-  // reactive root, where Solid refuses to look up a context.
-  const group = useAround(comboboxPrimitive, "group")?.().id as
-    string | undefined
+  // Looked up once, here: the thunk also runs from DOM event handlers, outside
+  // any reactive root, where Solid refuses to look up a context.
+  const group = useAround(comboboxPrimitive, "group")
   return usePart(
     combobox,
     "select-all",
-    () => ({ id: selectAllKey(group) }),
+    () => ({ id: selectAllKey(group?.().id as string | undefined) }),
     props,
     "div"
   )
