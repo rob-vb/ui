@@ -1,6 +1,11 @@
 import { describe, expect, test, vi } from "vitest"
 import { passwordInput } from "../src/components/password-input/password-input"
-import { attrs, partState, press } from "../src/foundation/kernel/part"
+import {
+  attrs,
+  handlers,
+  partState,
+  press,
+} from "../src/foundation/kernel/part"
 
 describe("password input", () => {
   test("starts hidden, as a password field that password managers fill", () => {
@@ -117,5 +122,11 @@ describe("password input without a DOM", () => {
       true,
       expect.objectContaining({ reason: "toggle-press" })
     )
+  })
+
+  test("a field removed while it has focus blurs without its element", () => {
+    const instance = passwordInput({ id: "p" })
+    const { focusout } = handlers(instance.part("control", {}))
+    expect(() => focusout!(new Event("focusout"))).not.toThrow()
   })
 })

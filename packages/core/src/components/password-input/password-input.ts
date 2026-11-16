@@ -364,9 +364,11 @@ const passwordInputPrimitive = /* @__PURE__ */ definePrimitive({
         capsLock(event: KeyboardEvent | MouseEvent) {
           store.set({ capsLock: !!event.getModifierState?.("CapsLock") })
         },
-        blurred(el: HTMLInputElement) {
+        // A field removed or hidden while it has focus blurs after its part let go
+        // of it, so this takes the event's target.
+        blurred(el: HTMLInputElement | null) {
           store.set({ capsLock: false })
-          if (el.selectionStart !== null && el.selectionEnd !== null) {
+          if (el && el.selectionStart !== null && el.selectionEnd !== null) {
             selection = [
               el.selectionStart,
               el.selectionEnd,
@@ -459,8 +461,8 @@ const passwordInputPrimitive = /* @__PURE__ */ definePrimitive({
         keydown: (event, { api }) => api.internal.capsLock(event),
         keyup: (event, { api }) => api.internal.capsLock(event),
         mousedown: (event, { api }) => api.internal.capsLock(event),
-        focusout: (_, { api, el }) =>
-          api.internal.blurred(el as HTMLInputElement),
+        focusout: (event, { api }) =>
+          api.internal.blurred(event.target as HTMLInputElement | null),
       },
       bind: (el, { api }) => api.internal.bindControl(el as HTMLInputElement),
     }),
