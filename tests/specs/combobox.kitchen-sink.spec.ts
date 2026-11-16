@@ -53,3 +53,31 @@ test("every kitchen sink variant opens", async ({ page, framework }) => {
 
   expect(errors).toEqual([])
 })
+
+// A controlled query comes back through props after the list has opened.
+test("typing inside a controlled query's chosen label keeps the caret where it is", async ({
+  page,
+  framework,
+}) => {
+  test.skip(
+    !["react", "vue", "web"].includes(framework),
+    "Composition frameworks only."
+  )
+  await page.goto(`/?fixture=combobox-kitchen-sink&framework=${framework}`)
+  await page.locator("body[data-mounted]").waitFor({ state: "attached" })
+  const input = page.locator(
+    '[data-variant="controlled-query"] [data-slot="combobox-input"]'
+  )
+  await input.scrollIntoViewIfNeeded()
+  await input.click()
+  await page.keyboard.press("ArrowDown")
+  await page.keyboard.press("ArrowDown")
+  await page.keyboard.press("Enter")
+  await expect(input).toHaveValue("Australia")
+  await input.evaluate((el: HTMLInputElement) => el.setSelectionRange(1, 1))
+  await page.keyboard.type("xy")
+  await expect(input).toHaveValue("Axyustralia")
+  await expect
+    .poll(() => input.evaluate((el: HTMLInputElement) => el.selectionStart))
+    .toBe(3)
+})

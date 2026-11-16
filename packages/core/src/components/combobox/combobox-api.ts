@@ -444,8 +444,6 @@ function comboboxApiBody(
   const presentation = kit.internal.presentation
   const { show, hide } = control
 
-  // True while the store marks an edit before it has the text, as the first edit after a choice does.
-  let marking = false
   function setQuery(
     query: string,
     {
@@ -458,12 +456,7 @@ function comboboxApiBody(
       dirty?: boolean
     } = {}
   ) {
-    marking = dirty
-    try {
-      store.set({ dirty })
-    } finally {
-      marking = false
-    }
+    store.set({ dirty })
     return change("query", query, { reason, event })
   }
 
@@ -863,7 +856,6 @@ function comboboxApiBody(
     focus: () => inputElement()?.focus(),
     // Internal. Used by slots and adapters.
     internal: {
-      marking: () => marking,
       options,
       // Read by the agent bridge, which takes text that isn't an item only with it.
       allowCustomValue: () => !!options().allowCustomValue,
