@@ -27,7 +27,7 @@ type FileInputContextValue = PrimitiveHandle<typeof fileInputPrimitive>
 
 const FileInputContext = createContext<FileInputContextValue | null>(null)
 // The file each repetition of a list's children shows.
-const FileContext = createContext<File | null>(null)
+const FileContext = createContext<(() => File) | null>(null)
 
 function useFileInput(part: string) {
   const context = useContext(FileInputContext)
@@ -40,7 +40,7 @@ function useFileInput(part: string) {
 function useItemFile(part: string, own: () => File | undefined) {
   const listed = useContext(FileContext)
   return () => {
-    const file = own() ?? listed
+    const file = own() ?? listed?.()
     if (!file) {
       throw new Error(
         `${part} must be used inside <FileInputList>, or be given a file.`
@@ -196,7 +196,7 @@ function FileInputList(
   // Files keep their identity between changes, so each keeps its item.
   const items = (state: FileInputState) => (
     <For each={state.value as readonly File[]}>
-      {(file) => <FileContext value={file}>{props.children}</FileContext>}
+      {(file) => <FileContext value={() => file}>{props.children}</FileContext>}
     </For>
   )
   return usePart(
@@ -221,7 +221,7 @@ function FileInputItem(
   const item = () => ({ file: file(), value: fileKey(file()) })
   const rest = omit(props, "file")
   return (
-    <FileContext value={file()}>
+    <FileContext value={file}>
       {usePart(fileInput, "item", item, rest, "div")}
     </FileContext>
   )
