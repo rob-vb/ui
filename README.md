@@ -24,7 +24,7 @@ For other frameworks, swap `@ui-sdk/react` for `@ui-sdk/vue`, `@ui-sdk/svelte`, 
 Then give your agent the UI SDK skill:
 
 ```bash
-npx skills add vercel-labs/ui --skill ui-sdk
+npx skills@latest add vercel-labs/ui --skill ui-sdk
 ```
 
 ## Example

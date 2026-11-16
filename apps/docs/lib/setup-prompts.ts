@@ -136,7 +136,7 @@ const stacks = [
 type StackId = (typeof stacks)[number]["id"]
 
 const skillStep =
-  "If you support skills, run: npx skills add vercel-labs/ui --skill ui-sdk"
+  "If you support skills, run: npx skills@latest add vercel-labs/ui --skill ui-sdk"
 const tailwindStyles = `If the app uses Tailwind CSS, start its global stylesheet with these lines instead, in place of its own @import "tailwindcss", so Tailwind's base styles don't reset them:
    @layer ui-sdk;
    @import "tailwindcss";
