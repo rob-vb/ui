@@ -22,18 +22,25 @@ import {
   useContext,
   type ComponentProps,
 } from "solid-js"
-import { createParts, provided, usePart, type PartProps } from "./use-primitive"
+import {
+  createParts,
+  provided,
+  useHandle,
+  usePart,
+  type PartProps,
+} from "./use-primitive"
 
 const parts = createParts(treePrimitive, { root: "div" })
 
 // Whether items have checkboxes, for the items a data tree renders.
 const CheckableContext = createContext<() => boolean>(() => false)
 // The item a part belongs to, and the parent of the items in its group. A
-// group among the item's children says it's there through `grouped`, which
+// group among the item's children says it's there through `setGrouped`, which
 // makes the item a branch: Solid's children are lazy, so the item can't look.
 const ItemContext = createContext<{
   value: () => string
-  grouped: (present: boolean) => void
+  props: () => TreeItemProps
+  setGrouped: (present: boolean) => void
 } | null>(null)
 
 function useItem() {
@@ -104,7 +111,7 @@ function TreeItem(
     label: props.label,
   })
   const rest = omit(props, "value", "branch", "disabled", "label")
-  const context = { value: () => props.value, grouped: setGrouped }
+  const context = { value: () => props.value, props: item, setGrouped }
   // In document order on the server, so the first item claims the tab stop before the items after it.
   return provided(
     <ItemContext value={context}>
@@ -119,10 +126,16 @@ function useItemPart(
   props: PartProps<"span", TreeItemState>
 ) {
   const item = useItem()
+  const { instance } = useHandle(treePrimitive)
   return usePart(
     treePrimitive,
     slot,
-    () => ({ value: item.value() }),
+    () => {
+      // Core reads the item's props for the part's state, so they go first.
+      // A group that joins or a prop that changes then reaches the part too.
+      instance.part("item", item.props())
+      return { value: item.value() }
+    },
     props,
     "span"
   )
@@ -168,8 +181,8 @@ function TreeGroup(props: TreeGroupProps & PartProps<"div", TreeGroupState>) {
   // never writes signals, so there only `branch` makes an item a branch. A
   // group's item becomes one as the page hydrates.
   if (!isServer) {
-    item.grouped(true)
-    onCleanup(() => item.grouped(false))
+    item.setGrouped(true)
+    onCleanup(() => item.setGrouped(false))
   }
   const group = () => ({
     value: item.value(),
