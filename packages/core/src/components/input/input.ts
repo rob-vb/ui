@@ -460,7 +460,8 @@ const inputGroupPrimitive = /* @__PURE__ */ definePrimitive({
       press: ({ api }, event) => api.clear(event),
     }),
   }),
-  agent: { actions: ["clear"] },
+  // Its field is the component an agent sees, with the label and `clear`.
+  agent: { shown: () => false },
 })
 
 /**

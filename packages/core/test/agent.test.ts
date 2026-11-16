@@ -16,7 +16,7 @@ import { checkbox } from "../src/components/checkbox/checkbox"
 import { combobox } from "../src/components/combobox/combobox"
 import { datePicker } from "../src/components/date-picker/date-picker"
 import { dialog } from "../src/components/dialog/dialog"
-import { input, textarea } from "../src/components/input/input"
+import { input, inputGroup, textarea } from "../src/components/input/input"
 import { listbox } from "../src/components/listbox/listbox-root"
 import { numberInput } from "../src/components/number-input/number-input"
 import { pagination } from "../src/components/pagination/pagination"
@@ -415,6 +415,29 @@ describe("agent", () => {
     unbind()
     instance.destroy()
     expect(password()).toEqual([])
+  })
+
+  test("an input group isn't a component of its own: its field takes the label and the clear", async () => {
+    const agent = createAgent()
+    const group = inputGroup({ id: "search-group" })
+    const field = input({ id: "search", defaultValue: "abc" })
+    const root = document.body.appendChild(document.createElement("div"))
+    const el = root.appendChild(document.createElement("input"))
+    el.setAttribute("aria-label", "Search")
+    const clear = root.appendChild(document.createElement("button"))
+    clear.setAttribute("aria-label", "Clear search")
+    cleanups.push(
+      bind(field.part("root"), el),
+      bind(group.part("group"), root),
+      bind(group.part("clear"), clear),
+      () => group.destroy(),
+      () => field.destroy()
+    )
+    await Promise.resolve()
+    const screen = agent.snapshot().filter((component) => !component.offPage)
+    expect(screen).toHaveLength(1)
+    expect(screen[0]).toMatchObject({ component: "input", label: "Search" })
+    expect(screen[0].actions).toContain("clear")
   })
 
   test("a toolbar's buttons are pressed by their text", async () => {
