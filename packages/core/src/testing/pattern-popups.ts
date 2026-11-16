@@ -256,17 +256,17 @@ function isInert(el: Element) {
 }
 
 // A modal dialog makes the page behind it inert: its trigger, or without one,
-// what sits beside it, or beside the nearest element around it that has
-// anything beside it, like an app's root that holds the page and the dialog.
+// anything beside it or beside an element around it, like the page beside a
+// container that holds the dialog and its backdrop.
 function isPageInert(popup: Element) {
   const trigger = triggerOf(popup)
   if (trigger) {
     return isInert(trigger)
   }
   for (let node = popup; node.parentElement; node = node.parentElement) {
-    const beside = [...node.parentElement.children].filter((el) => el !== node)
-    if (beside.length) {
-      return beside.some((el) => isInert(el))
+    const parent = node.parentElement
+    if ([...parent.children].some((el) => el !== node && isInert(el))) {
+      return true
     }
   }
   return false

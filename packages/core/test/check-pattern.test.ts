@@ -709,14 +709,16 @@ describe("broken markup fails", () => {
     [
       "with its trigger",
       `<button aria-haspopup="dialog" aria-expanded="true" aria-controls="box">Open</button>`,
+      "",
     ],
-    ["with what sits beside it", `<p>The page</p>`],
+    ["with what sits beside it", `<p>The page</p>`, ""],
+    ["behind a backdrop beside it", `<p>The page</p>`, `<div></div>`],
   ])(
     "a dialog that makes the page behind it inert, %s, without aria-modal",
-    async (_name, page) => {
+    async (_name, page, backdrop) => {
       const root = render(`<div>
         <main inert>${page}</main>
-        <div id="box" role="dialog" aria-label="Box"><button id="one">One</button><button id="two">Two</button></div>
+        <div>${backdrop}<div id="box" role="dialog" aria-label="Box"><button id="one">One</button><button id="two">Two</button></div></div>
       </div>`)
       await expect(checkPattern(trapTab(root), "dialog")).rejects.toThrow(
         /is modal but has no aria-modal="true"/
