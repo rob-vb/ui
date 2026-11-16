@@ -7,7 +7,12 @@ import type { SliderOptions } from "./slider"
 interface SliderGeneric extends PrimitiveGeneric {
   T: unknown
   defaults: { T: number | number[] }
-  options: SliderOptions<Extract<this["T"], number | number[]>>
+  // Two arms that each take a type parameter, so a generic wrapper can pass its own `T` on.
+  options: SliderOptions<
+    this["T"] extends number | number[]
+      ? this["T"]
+      : this["T"] & (number | number[])
+  >
 }
 
 export type { SliderGeneric }

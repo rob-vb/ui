@@ -1,4 +1,4 @@
-import { slider } from "@ui-sdk/core/slider"
+import { slider, type SliderOptions } from "@ui-sdk/core/slider"
 import { createParts } from "../src/use-primitive"
 
 const { Root: Slider } = createParts(slider, { root: "div" })
@@ -52,3 +52,16 @@ const exactly = <T, Expected>(_value: T, _same: Equal<T, Expected>) => {}
     exactly<typeof value, number | number[]>(value, true)
   }
 />
+
+// A generic component passes its own value type on, spread or prop by prop.
+function Forwarded<T extends number | number[]>(props: SliderOptions<T>) {
+  return <Slider<T> {...props} />
+}
+function Picked<T extends number | number[]>(props: {
+  value: T
+  onValueChange: (value: T) => void
+}) {
+  return <Slider value={props.value} onValueChange={props.onValueChange} />
+}
+void Forwarded
+void Picked

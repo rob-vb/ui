@@ -1,5 +1,5 @@
 // Compiled by `pnpm typecheck`, never run.
-import { Slider } from "../src/slider"
+import { Slider, type SliderOptions } from "../src/slider"
 
 type Equal<A, B> =
   (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2
@@ -22,4 +22,15 @@ const range = (
 // @ts-expect-error Values are numbers.
 const wrong = <Slider value="50" />
 
-export { one, range, wrong }
+// A generic component passes its own value type on, spread or prop by prop.
+function Forwarded<T extends number | number[]>(props: SliderOptions<T>) {
+  return <Slider<T> {...props} />
+}
+function Picked<T extends number | number[]>(props: {
+  value: T
+  onValueChange: (value: T) => void
+}) {
+  return <Slider value={props.value} onValueChange={props.onValueChange} />
+}
+
+export { Forwarded, Picked, one, range, wrong }
